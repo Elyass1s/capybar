@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -964,5 +963,3 @@ with app.app_context():
 
 if __name__ == "__main__":
     socketio.run(app, debug=True)  # Вместо app.run() используем socketio.run()
-=======
->>>>>>> 868b5d7f08519545e90fb13e805dfe9cb330738a
