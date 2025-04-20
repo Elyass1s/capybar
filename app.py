@@ -734,7 +734,7 @@ def get_direct_messages(user_id):
                 'sender_id': message.sender_id,
                 'sender_name': sender.name,
                 'content': message.content,
-                'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'created_at': message.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'is_read': message.is_read 
             })
         
@@ -774,7 +774,7 @@ def get_group_messages(group_id):
                 'sender_id': message.sender_id,
                 'sender_name': sender.name,
                 'content': message.content,
-                'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'created_at': message.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'is_read': message.is_read 
             })
         
@@ -871,6 +871,92 @@ def upload_attachment():
     url = f"/static/uploads/{filename}"
     return jsonify({'success': True, 'url': url})
 
+@app.route('/get_chats', methods=['GET'])
+@login_required
+def get_chats():
+    filter_type = request.args.get('filter', 'all')
+    current_user = get_current_user()
+
+    # Получаем друзей (личные чаты)
+    friends = User.query.join(Friendship, Friendship.friend_id == User.id)\
+        .filter(Friendship.user_id == current_user.id).all()
+
+    # Получаем группы
+    groups = Group.query.join(GroupMember).filter(GroupMember.user_id == current_user.id).all()
+
+    chats = []
+
+    # Личные чаты
+    for friend in friends:
+        last_msg = Message.query.filter(
+            ((Message.sender_id == current_user.id) & (Message.recipient_id == friend.id)) |
+            ((Message.sender_id == friend.id) & (Message.recipient_id == current_user.id))
+        ).order_by(Message.created_at.desc()).first()
+
+        unread_count = Message.query.filter(
+            (Message.sender_id == friend.id) &
+            (Message.recipient_id == current_user.id) &
+            (Message.is_read == False)
+        ).count()
+
+        if filter_type == 'read' and unread_count > 0:
+            continue
+        if filter_type == 'unread' and unread_count == 0:
+            continue
+
+        # Форматируем время последнего сообщения
+        last_time = ""
+        if last_msg:
+            last_time = last_msg.created_at.strftime('%Y-%m-%dT%H:%M:%SZ')  # <-- ISO формат с Z
+        else:
+            last_time = ""
+
+        chats.append({
+            'type': 'direct',
+            'id': friend.id,
+            'name': friend.nickname or friend.name,
+            'avatar': friend.avatar,
+            'last_message': last_msg.content if last_msg else '',
+            'last_time': last_time,
+            'unread_count': unread_count
+        })
+
+    # Группы
+    for group in groups:
+        last_msg = Message.query.filter_by(group_id=group.id).order_by(Message.created_at.desc()).first()
+        unread_count = Message.query.filter(
+            Message.group_id == group.id,
+            Message.sender_id != current_user.id,
+            Message.is_read == False
+        ).count()
+
+        if filter_type == 'read' and unread_count > 0:
+            continue
+        if filter_type == 'unread' and unread_count == 0:
+            continue
+
+        # Форматируем время последнего сообщения
+        last_time = ""
+        if last_msg:
+            last_time = last_msg.created_at.strftime('%Y-%m-%dT%H:%M:%SZ')  # <-- ISO формат с Z
+        else:
+            last_time = ""
+
+        chats.append({
+            'type': 'group',
+            'id': group.id,
+            'name': group.name,
+            'avatar': group.avatar,
+            'last_message': last_msg.content if last_msg else '',
+            'last_time': last_time,
+            'unread_count': unread_count
+        })
+
+    # Сортировка по времени последнего сообщения (пустые в конец)
+    chats.sort(key=lambda c: c['last_time'] or '00:00', reverse=True)
+
+    return jsonify({'success': True, 'chats': chats})
+
 # Обработчики событий WebSocket
 @socketio.on('connect')
 def handle_connect():
@@ -939,7 +1025,7 @@ def handle_message(data):
             'recipient_id': new_message.recipient_id,
             'group_id': new_message.group_id,
             'content': message_content,
-            'timestamp': new_message.created_at.isoformat(),
+            'timestamp': new_message.created_at.isoformat() + 'Z',  # <-- исправлено!
             'is_read': False
         }, room=room)
     except Exception as e:
