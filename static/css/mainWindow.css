@@ -442,46 +442,52 @@ body {
 
 /* Стили для выпадающего меню */
 .options-menu {
-  width: 190px;
-  height: 86px;
-  background: #306748;
-  border-radius: 40px;
   position: absolute;
-  bottom: 45px;
-  left: -80px;
-  display: none; /* По умолчанию скрыто */
-  flex-direction: column;
-  justify-content: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  bottom: 54px;
+  left: 0;
+  background: #306748;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px 0 rgba(48, 103, 72, 0.12);
+  padding: 8px 14px;      /* увеличенный внутренний отступ */
+  display: none;
+  flex-direction: row;
+  gap: 10px;              /* больше расстояние между иконками */
+  min-width: 0;
+  min-height: 0;
   z-index: 100;
-  animation: fadeIn 0.2s ease-in-out;
-  padding: 5px 0;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .options-menu.visible {
   display: flex;
 }
-/* Стили для кнопок внутри меню */
+
 .option-btn {
-  background: transparent;
+  background: none;
   border: none;
-  color: #FDD367;
-  font-size: 24px;
-  font-family: 'Konkhmer Sleokchher', cursive;
-  padding: 5px;
+  padding: 2px 4px;
+  border-radius: 5px;
   cursor: pointer;
-  text-align: center;
-  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.option-btn svg {
+  width: 28px;
+  height: 28px;
 }
 
 .option-btn:hover {
-  background-color: rgba(253, 211, 103, 0.1);
+  background: #244c36;
 }
+
+
+.option-btn svg * {
+  stroke: #FDD367 !important;
+  fill: none !important;
+}
+
 /* Стиль для кнопки редактирования (карандаш) */
 .edit-button {
   position: absolute;
@@ -500,31 +506,37 @@ body {
   border: none;
 }
 
+.edit-button svg path {
+  fill: #1f4e28 !important;   /* Чёрный цвет карандаша */
+  stroke: #111 !important; /* На случай если используется stroke */
+}
+
 /* Показываем кнопку редактирования при наведении на сообщение */
 .message.sent:hover .edit-button {
   opacity: 1;
 }
 
 .edit-button:hover {
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(20, 77, 24, 0.4);
 }
 
 /* Стиль для всплывающего зеленого виджета */
 .edit-widget {
   position: absolute;
-  top: -40px;
-  right: 10px;
-  background-color:#306748;
-  ;
-  border-radius: 10px;
-  padding: 8px;
+  top: -32px;
+  right: 6px;
+  background-color: #306748;
+  border-radius: 6px;
+  padding: 3px 6px;
   display: flex;
-  gap: 5px;
+  gap: 4px;
   z-index: 100;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
+  min-width: 0;
+  min-height: 0;
 }
 
 /* Показываем виджет */
@@ -546,14 +558,16 @@ body {
 
 /* Стили для кнопок в виджете */
 .widget-button {
-  padding: 5px 10px;
+  padding: 2px 4px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   color: #FDD367;
+  background: none;
   cursor: pointer;
   font-size: 12px;
-  font-weight: bold;
-  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .edit-btn {
@@ -568,53 +582,42 @@ body {
   filter: brightness(1.1);
 }
 
-/* Стили для виджета удаления чата */
-.delete-chat-widget {
+/* Жёлтый круг-кнопка */
+.status-circle {
   position: absolute;
-  top: 15px;
-  right: 60px;
-  background-color: #306748; /* Зеленый цвет */
-  border-radius: 10px;
-  padding: 8px;
-  z-index: 100;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s, visibility 0.2s;
-}
-
-/* Стрелка для виджета */
-.delete-chat-widget:after {
-  content: "";
-  position: absolute;
-  top: 8px;
-  right: -10px;
-  border-width: 10px 0 10px 10px;
-  border-style: solid;
-  border-color: transparent transparent transparent #306748;
-}
-
-/* Показываем виджет */
-.delete-chat-widget.visible {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Стиль для кнопки удаления чата */
-.delete-chat-btn {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  background-color: #306748; /* Красный цвет для кнопки удаления */
-  color: #FDD367;
+  top: 20px;
+  right: 30px;
+  width: 42px;
+  height: 42px;
+  background: #FDD367;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: bold;
-  transition: background-color 0.2s;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s;
+}
+.status-circle:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
 }
 
-.delete-chat-btn:hover {
-  background-color: #306748; /* Темно-красный при наведении */
+.delete-chat-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.delete-chat-btn svg path {
+  stroke: #FDD367 !important; /* жёлтая иконка */
+}
+.delete-chat-btn:hover svg path {
+  stroke: #ffb81d !important; /* чуть темнее при наведении */
 }
 
 /* Заголовок группы */
@@ -708,31 +711,20 @@ body {
 .delete-chat-widget {
   display: none;
   position: absolute;
-  top: 40px;
-  right: 10px;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  z-index: 1000;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  top: 54px;
+  right: 18px;
+  background: #306748;
+  border-radius: 7px;
+  box-shadow: 0 2px 8px 0 rgba(48, 103, 72, 0.12);
+  padding: 2px 4px;      /* Ещё меньше внутренний отступ */
+  z-index: 30;
+  align-items: center;
+  min-width: 28px;       /* Минимальная ширина */
+  min-height: 28px;      /* Минимальная высота */
 }
 
 .delete-chat-widget.visible {
-  display: block;
-}
-
-.delete-chat-btn {
-  background-color: #F44336;
-  color: white;
-  border: none;
-  padding: 8px 10px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.delete-chat-btn:hover {
-  background-color: #D32F2F;
+  display: flex;
 }
 
 /* Стили для поисковой строки */
@@ -800,7 +792,6 @@ body {
   background: #fdd367;
   color: #7e453d;
   font-weight: bold;
-  border-radius: 8px;
 }
 
 @keyframes fadeIn {

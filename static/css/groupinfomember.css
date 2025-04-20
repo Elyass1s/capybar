@@ -86,13 +86,14 @@ body {
   
   .members-section {
     position: relative;
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     z-index: 1;
     width: 90%;
     margin: 5px auto;
-    min-height: 0; /* Важно для правильной работы flex */
+    min-height: 0; /* Важно для flex! */
+    max-height: 60vh; /* Ограничение по высоте, можно подобрать под дизайн */
     overflow: hidden;
   }
   
@@ -111,8 +112,14 @@ body {
     border-radius: 15px;
     padding: 8px;
     overflow-y: auto;
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 80px;
+    max-height: 100%; /* Не больше чем .members-section */
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE и Edge */
+  }
+  .members-list::-webkit-scrollbar {
+    display: none;                /* Chrome, Safari, Opera */
   }
   
   .member {
@@ -240,7 +247,8 @@ body {
 }
   
   /* Стиль для кнопки-карандаша */
-.edit-button {
+.edit-button,
+.header > .edit-button {
   position: absolute;
   top: 10px;
   right: 15px;
@@ -252,11 +260,24 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 9999 !important;
+  z-index: 1001;
   border: 2px solid #333; /* Добавили заметную границу */
   box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Добавили тень */
   transition: all 0.2s ease;
   outline: 2px solid red;
+}
+
+.edit-button svg,
+.header > .edit-button svg {
+  width: 32px; /* Увеличили размер SVG */
+  height: 32px;
+  display: block;
+}
+
+.edit-button svg path {
+  stroke: #222 !important;
+  fill: none !important;
+  stroke-width: 2;
 }
 
 /* Эффект при наведении */
@@ -269,40 +290,4 @@ body {
 .edit-button:active {
   transform: scale(0.95);
   box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-
-/* Стиль для SVG */
-.edit-button svg {
-  width: 32px; /* Увеличили размер SVG */
-  height: 32px;
-}
-
-/* Кнопка-карандаш в header */
-.header > .edit-button {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  width: 48px;
-  height: 48px;
-  background: #fff !important;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1001;
-  border: 2px solid #333;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  transition: all 0.2s ease;
-  outline: 2px solid #FDD367;
-}
-
-.header > .edit-button svg {
-  width: 32px;
-  height: 32px;
-  display: block;
-}
-
-.header > .edit-button svg path {
-  fill: #333 !important;
 }
