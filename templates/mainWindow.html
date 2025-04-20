@@ -197,7 +197,7 @@
     });
 
      // Функция для создания нового сообщения
-    function createMessage(text, isSent, isRead = false, messageId = null, isDelivered = true) {
+    function createMessage(text, isSent, isRead = false, messageId = null, isDelivered = true, createdAt = null) {
       const container = document.createElement('div');
       container.className = isSent ? 'message-container sent-container' : 'message-container received-container';
       if (messageId) container.setAttribute('data-message-id', messageId);
@@ -272,7 +272,8 @@
     
       const time = document.createElement('span');
       time.className = 'message-time';
-      time.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      let dateObj = createdAt ? new Date(createdAt) : new Date();
+      time.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
       // Статус прочтения (только для своих сообщений)
       if (isSent) {
@@ -297,24 +298,7 @@
       return container;
     }
 
-    // // Использование функции при отправке сообщения
-    // document.querySelector('.send-button').addEventListener('click', function() {
-    //   const input = document.querySelector('.input-box input');
-    //   const text = input.value.trim();
-      
-    //   if (text) {
-    //     // Создаем и добавляем сообщение в чат
-    //     const messagesContainer = document.querySelector('.chat-messages');
-    //     const newMessage = createMessage(text, true, false); // Наше сообщение, непрочитанное
-    //     messagesContainer.appendChild(newMessage);
-    
-    //     // Очищаем поле ввода
-    //     input.value = '';
-    
-    //     // Прокручиваем чат вниз
-    //     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    //   }
-    // });
+
 
         // Функция для переключения видимости виджета
     function toggleWidget(widget) {
@@ -682,7 +666,7 @@
      * @param {string} senderName - имя отправителя (только для чужих сообщений)
      * @param {string} senderAvatar - путь к аватару отправителя (только для чужих сообщений)
      */
-    function createGroupMessage(text, isSent, isRead = false, senderName = '', senderAvatar = '', messageId = null) {
+    function createGroupMessage(text, isSent, isRead = false, senderName = '', senderAvatar = '', messageId = null, createdAt = null) {
       const container = document.createElement('div');
       container.className = isSent 
         ? 'message-container sent-container' 
@@ -781,7 +765,7 @@
       // Добавляем текущее время
       const time = document.createElement('span');
       time.className = 'message-time';
-      const now = new Date();
+      const now = createdAt ? new Date(createdAt) : new Date();
       time.textContent = now.getHours().toString().padStart(2, '0') + ':' + 
                          now.getMinutes().toString().padStart(2, '0');
       
@@ -946,7 +930,14 @@ document.querySelector('.input-box input').addEventListener('keypress', function
                   // Проверяем, нет ли уже такого сообщения
                   if (!chatMessages.querySelector(`.message-container[data-message-id="${msg.id}"]`)) {
                     const isSent = msg.sender_id == currentUserId;
-                    const message = createMessage(msg.content, isSent, msg.is_read || false, msg.id);
+                    const message = createMessage(
+                      msg.content,
+                      isSent,
+                      msg.is_read || false,
+                      msg.id,
+                      true, // isDelivered
+                      msg.created_at // <-- вот это!
+                    );
                     chatMessages.appendChild(message);
                   }
                 });
@@ -1052,7 +1043,8 @@ document.querySelector('.input-box input').addEventListener('keypress', function
                       msg.is_read || false,
                       isSent ? '' : msg.sender_name,
                       isSent ? '' : (msg.sender_avatar || ''),
-                      msg.id
+                      msg.id,
+                      msg.created_at // <-- вот это!
                     );
                     chatMessages.appendChild(messageEl);
                   }
@@ -1077,7 +1069,7 @@ document.querySelector('.input-box input').addEventListener('keypress', function
     // Load friends list when page loads
     document.addEventListener('DOMContentLoaded', function() {
       // Add this function call
-      fetchFriendsList();
+      // fetchFriendsList();
       
       // Keep the existing DOMContentLoaded code
       const chatItems = document.querySelectorAll('.chat-item');
@@ -1126,6 +1118,14 @@ document.querySelector('.input-box input').addEventListener('keypress', function
           <div class="chat-item-time"></div>
         `;
         
+const timeElement = chatItem.querySelector('.chat-item-time');
+        if (friend.last_time) {
+          const dateObj = new Date(friend.last_time);
+          timeElement.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        } else {
+          timeElement.textContent = '';
+        }
+
         // Add click event handler for chat items
         chatItem.addEventListener('click', function() {
           document.querySelectorAll('.chat-item').forEach(chat => {
@@ -1182,6 +1182,14 @@ document.querySelector('.input-box input').addEventListener('keypress', function
           </div>
         `;
         
+const timeElement = chatItem.querySelector('.chat-item-time');
+        if (group.last_time) {
+          const dateObj = new Date(group.last_time);
+          timeElement.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        } else {
+          timeElement.textContent = '';
+        }
+
         // Добавляем обработчик клика
         chatItem.addEventListener('click', function() {
           document.querySelectorAll('.chat-item').forEach(chat => {
@@ -1199,10 +1207,10 @@ document.querySelector('.input-box input').addEventListener('keypress', function
     // Вызовите fetchGroupsList() при загрузке страницы
     document.addEventListener('DOMContentLoaded', function() {
       // Существующий код загрузки друзей
-      fetchFriendsList();
+      // fetchFriendsList();
       
       // Добавляем загрузку групп
-      fetchGroupsList();
+      // fetchGroupsList();
       
       // Остальной код...
     });
@@ -1216,8 +1224,8 @@ document.querySelector('.input-box input').addEventListener('keypress', function
       
       if (!searchTerm) {
         // Если поле поиска пустое, возвращаем обычный список чатов
-        fetchFriendsList();
-        fetchGroupsList();
+        // fetchFriendsList();
+        // fetchGroupsList();
         return;
       }
     
@@ -1261,6 +1269,14 @@ document.querySelector('.input-box input').addEventListener('keypress', function
                   </div>
                 `;
                 
+const timeElement = chatItem.querySelector('.chat-item-time');
+                if (user.last_time) {
+                  const dateObj = new Date(user.last_time);
+                  timeElement.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                } else {
+                  timeElement.textContent = '';
+                }
+
                 // Добавляем обработчик клика
                 chatItem.addEventListener('click', function() {
                   document.querySelectorAll('.chat-item').forEach(chat => {
@@ -1299,6 +1315,14 @@ document.querySelector('.input-box input').addEventListener('keypress', function
                     <div>${group.name}</div>
                   </div>
                 `;
+
+                const timeElement = chatItem.querySelector('.chat-item-time');
+                if (group.last_time) {
+                  const dateObj = new Date(group.last_time);
+                  timeElement.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                } else {
+                  timeElement.textContent = '';
+                }
                 
                 // Добавляем обработчик клика
                 chatItem.addEventListener('click', function() {
@@ -1328,8 +1352,8 @@ document.querySelector('.input-box input').addEventListener('keypress', function
             // Показываем сообщение об ошибке
             showNotification('Ошибка поиска: ' + data.message, true);
             // Возвращаем исходные списки
-            fetchFriendsList();
-            fetchGroupsList();
+            // fetchFriendsList();
+            // fetchGroupsList();
           }
         })
         .catch(error => {
@@ -1337,8 +1361,8 @@ document.querySelector('.input-box input').addEventListener('keypress', function
           showNotification('Ошибка поиска. Пожалуйста, попробуйте позже.', true);
           sidebar.removeChild(loadingIndicator);
           // Возвращаем исходные списки
-          fetchFriendsList();
-          fetchGroupsList();
+          // fetchFriendsList();
+          // fetchGroupsList();
         });
     }
     
@@ -1365,8 +1389,8 @@ document.querySelector('.input-box input').addEventListener('keypress', function
       // Сброс результатов поиска при очистке поля
       searchInput.addEventListener('input', function() {
         if (this.value.trim() === '') {
-          fetchFriendsList();
-          fetchGroupsList();
+          // fetchFriendsList();
+          // fetchGroupsList();
         }
       });
     });
@@ -2000,9 +2024,96 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
-        // В конец <script> или после DOMContentLoaded
+    function updateChatSidebar(chats) {
+      const sidebar = document.querySelector('.sidebar');
+      if (!sidebar) return;
+      sidebar.innerHTML = '';
+      chats.forEach(chat => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item' + (chat.type === 'group' ? ' group-chat-item' : '');
+        chatItem.setAttribute('data-chat-type', chat.type);
+        chatItem.setAttribute(chat.type === 'group' ? 'data-group-id' : 'data-user-id', chat.id);
+        
+        // Добавляем последнее сообщение как подсказку (tooltip)
+        if (chat.last_message) {
+          const plainText = chat.last_message.replace(/<[^>]*>/g, ''); // Удаляем HTML теги
+          chatItem.setAttribute('title', plainText.substring(0, 50) + (plainText.length > 50 ? '...' : ''));
+        }
+        
+        chatItem.innerHTML = `
+          <div class="chat-item-name">
+            <img src="${chat.avatar || '/static/img/image 12.png'}" alt="avatar" />
+            <div>${chat.name}</div>
+          </div>
+          <div class="chat-item-time"></div>
+          ${chat.unread_count > 0 ? '<div class="unread-indicator"></div>' : ''}
+        `;
+        
+// ...existing code...
+const timeElement = chatItem.querySelector('.chat-item-time');
+if (chat.last_time) {
+  const dateObj = new Date(chat.last_time);
+  timeElement.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+} else {
+  timeElement.textContent = '';
+}
+// ...existing code...
 
+        // === ДОБАВЛЯЕМ ОБРАБОТЧИК КЛИКА ===
+        chatItem.addEventListener('click', function() {
+          document.querySelectorAll('.chat-item').forEach(chat => chat.classList.remove('active'));
+          this.classList.add('active');
+          const chatType = this.getAttribute('data-chat-type');
+          if (chatType === 'group') {
+            const groupId = this.getAttribute('data-group-id');
+            loadGroupChat(groupId);
+          } else {
+            const userId = this.getAttribute('data-user-id');
+            const userName = this.querySelector('.chat-item-name div').textContent.trim();
+            loadDirectChat(userId, userName);
+          }
+        });
+        sidebar.appendChild(chatItem);
+      });
+    }
+
+    // Добавляем в конец существующего обработчика DOMContentLoaded
     document.addEventListener('DOMContentLoaded', function() {
+      fetchChats('all'); // Загрузить все чаты при старте
+      
+      // Обработчики для фильтра
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const filter = this.textContent.trim().toLowerCase();
+          fetchChats(filter === 'all' ? 'all' : (filter === 'read' ? 'read' : 'unread'));
+        });
+      });
+    });
+
+    function fetchChats(filter = 'all') {
+      fetch(`/get_chats?filter=${filter}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            updateChatSidebar(data.chats);
+          }
+        });
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.textContent.trim().toLowerCase();
+        fetchChats(filter === 'all' ? 'all' : (filter === 'read' ? 'read' : 'unread'));
+      });
+    });
+
+            // В конец <script> или после DOMContentLoaded
+
+              document.addEventListener('DOMContentLoaded', function() {
       const statusCircle = document.querySelector('.status-circle');
       const deleteChatWidget = document.getElementById('deleteChatWidget');
       const deleteBtn = document.querySelector('.delete-chat-btn');

@@ -81,22 +81,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (chatType === 'group') {
-                    // Проверяем, нет ли уже такого сообщения
                     if (!messagesContainer.querySelector(`.message-container[data-message-id="${data.id}"]`)) {
                         const message = createGroupMessage(
                             data.content,
                             isSentByMe,
-                            false, // not read yet
+                            false,
                             isSentByMe ? '' : data.sender_name,
                             isSentByMe ? '' : data.sender_avatar,
-                            data.id // <-- передаем id
+                            data.id,
+                            data.timestamp // <-- вот это!
                         );
                         messagesContainer.appendChild(message);
                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
                     }
                 } else {
                     if (!messagesContainer.querySelector(`.message-container[data-message-id="${data.id}"]`)) {
-                        const message = createMessage(data.content, isSentByMe, false, data.id);
+                        const message = createMessage(
+                            data.content,
+                            isSentByMe,
+                            false,
+                            data.id,
+                            true,
+                            data.timestamp // <-- вот это!
+                        );
                         messagesContainer.appendChild(message);
                     }
                 }
@@ -111,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateChatUnreadStatus(data);
             }
         }
+        // После добавления сообщения:
+        updateChatItemTime(data);
     });
     
     // Обработчик ошибок
@@ -287,6 +296,24 @@ function updateChatUnreadStatus(data) {
     }
 }
 
+// Вспомогательная функция для обновления времени в chat-item
+function updateChatItemTime(data) {
+    let chatItem;
+    if (data.group_id) {
+        chatItem = document.querySelector(`.chat-item[data-group-id="${data.group_id}"]`);
+    } else {
+        // Для личных сообщений ищем по user-id собеседника (не себя)
+        const currentUserId = document.body.getAttribute('data-user-id');
+        const otherUserId = data.sender_id == currentUserId ? data.recipient_id : data.sender_id;
+        chatItem = document.querySelector(`.chat-item[data-user-id="${otherUserId}"]`);
+    }
+    if (chatItem) {
+        const timeElement = chatItem.querySelector('.chat-item-time');
+        if (timeElement) {
+            timeElement.textContent = formatTime(data.timestamp);
+        }
+    }
+}
 
 // Add this to socket.js
 function markMessageAsRead(messageId) {
