@@ -85,7 +85,7 @@
         listItem.setAttribute('data-user-id', friend.id);
         
         listItem.innerHTML = `
-          <img class="friend-avatar" src="${friend.avatar || '/static/img/image 12.png'}" alt="${friend.name}">
+          <img class="friend-avatar" src="${friend.avatar ? '/static/uploads/' + friend.avatar : '/static/img/image 12.png'}" alt="${friend.name}">
           <div class="friend-name">${friend.nickname || friend.name}</div>
           <button class="friend-status selected" title="Click to toggle selection" data-user-id="${friend.id}"></button>
         `;

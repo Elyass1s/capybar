@@ -1165,6 +1165,7 @@ document.querySelector('.input-box input').addEventListener('keypress', function
       
       // Add each friend to the sidebar
       friends.forEach(friend => {
+        console.log('[DEBUG] Аватар друга:', friend.avatar);
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
         chatItem.setAttribute('data-chat-type', 'direct');
@@ -1172,7 +1173,7 @@ document.querySelector('.input-box input').addEventListener('keypress', function
         
         chatItem.innerHTML = `
           <div class="chat-item-name">
-            <img src="${friend.avatar || '/static/img/image 12.png'}" alt="avatar" />
+            <img src="${friend.avatar ? '/static/uploads/' + friend.avatar : '/static/img/image 12.png'}" alt="avatar" />
             <div>${friend.nickname || friend.name}</div>
           </div>
           <div class="chat-item-time"></div>
@@ -1237,7 +1238,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
         
         chatItem.innerHTML = `
           <div class="chat-item-name">
-            <img src="${group.avatar || '/static/img/image 12.png'}" alt="Group Avatar" />
+            <img src="${group.avatar ? '/static/uploads/' + group.avatar : '/static/img/image 12.png'}" alt="Group Avatar" />
             <div>${group.name}</div>
           </div>
           <div class="chat-item-time"></div>
@@ -1315,7 +1316,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
                 
                 chatItem.innerHTML = `
                   <div class="chat-item-name">
-                    <img src="${user.avatar || '/static/img/image 12.png'}" alt="avatar" />
+                    <img src="${user.avatar ? '/static/uploads/' + user.avatar : '/static/img/image 12.png'}" alt="avatar" />
                     <div>${user.name}</div>
                   </div>
                   <div class="chat-item-time"></div>
@@ -1349,7 +1350,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
                 
                 chatItem.innerHTML = `
                   <div class="chat-item-name">
-                    <img src="${group.avatar || '/static/img/image 12.png'}" alt="Group Avatar" />
+                    <img src="${group.avatar ? '/static/uploads/' + group.avatar : '/static/img/image 12.png'}" alt="Group Avatar" />
                     <div>${group.name}</div>
                   </div>
                   <div class="chat-item-time"></div>
@@ -1518,7 +1519,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
       const isAdmin = member.is_admin ? '<div class="admin-star">★</div>' : '';
       return `
         <div class="member" data-user-id="${member.id}">
-          <img class="member-avatar" src="${member.avatar || 'https://placehold.co/35x35'}" alt="User avatar" />
+          <img class="member-avatar" src="${member.avatar ? '/static/uploads/' + member.avatar : '/static/img/image 12.png'}" alt="User avatar" />
           <div class="member-name">${member.nickname || member.name}</div>
           ${isAdmin}
         </div>
@@ -1541,7 +1542,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
           <p class="group-subtitle">Group: ${groupData.members.length} members</p>
           
           <div class="avatar-container">
-            <img class="group-avatar" src="${groupData.avatar || 'https://placehold.co/149x149'}" alt="Group avatar" />
+            <img class="group-avatar" src="${groupData.avatar ? '/static/uploads/' + groupData.avatar : '/static/img/image 12.png'}" alt="Group Avatar" />
           </div>
         </div>
 
@@ -1588,7 +1589,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
       const isAdmin = member.is_admin ? '<div class="admin-star">★</div>' : '';
       return `
         <div class="member" data-user-id="${member.id}">
-          <img class="member-avatar" src="${member.avatar || 'https://placehold.co/35x35'}" alt="User avatar" />
+          <img class="member-avatar" src="${member.avatar ? '/static/uploads/' + member.avatar : '/static/img/image 12.png'}" alt="User avatar" />
           <div class="member-name">${member.nickname || member.name}</div>
           ${isAdmin}
         </div>
@@ -1611,7 +1612,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
           <p class="group-subtitle">Group: ${groupData.members.length} members</p>
           
           <div class="avatar-container">
-            <img class="group-avatar" src="${groupData.avatar || 'https://placehold.co/149x149'}" alt="Group avatar" />
+            <img class="group-avatar" src="${groupData.avatar ? '/static/uploads/' + groupData.avatar : '/static/img/image 12.png'}" alt="Group Avatar" />
           </div>
         </div>
         
@@ -2075,7 +2076,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Делаем содержимое chat-item видимым и кликабельным!
         chatItem.innerHTML = `
           <div class="chat-item-name">
-            <img src="${chat.avatar || '/static/img/image 12.png'}" alt="avatar" />
+            <img src="${chat.avatar ? '/static/uploads/' + chat.avatar : '/static/img/image 12.png'}" alt="avatar" />
             <div>${chat.name}</div>
           </div>
           <div class="chat-item-time"></div>
@@ -2251,6 +2252,35 @@ document.addEventListener('DOMContentLoaded', function() {
       searchChatsAndUsers();
     });
   }
+});
+
+    // ...где происходит смена аватарки пользователя...
+profilePicInput.addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  console.log('[DEBUG] Выбран файл для аватарки:', file.name);
+
+  const formData = new FormData();
+  formData.append('profile_pic', file);
+
+  fetch('/update_profile_pic', {
+    method: 'POST',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log('[DEBUG] Ответ сервера на смену аватарки:', data);
+    if (data.success && data.new_pic_url) {
+      profilePic.src = data.new_pic_url + '?t=' + Date.now();
+      console.log('[DEBUG] Новый src для аватарки:', profilePic.src);
+    } else {
+      showNotification('Error updating profile picture', true);
+    }
+  })
+  .catch((err) => {
+    console.error('[DEBUG] Ошибка при смене аватарки:', err);
+    showNotification('Error updating profile picture', true);
+  });
 });
   </script>
 </body>

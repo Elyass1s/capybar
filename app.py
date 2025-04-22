@@ -1055,18 +1055,22 @@ def handle_mark_read(data):
 @login_required
 def update_profile_pic():
     file = request.files.get('profile_pic')
+    print('[DEBUG] Получен файл:', file.filename if file else None)
     def allowed_file(filename):
         allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
     if file and allowed_file(file.filename):
-        current_user = get_current_user()  # Retrieve the current user
+        current_user = get_current_user()
         filename = secure_filename(f"avatar_{current_user.id}_{int(time.time())}{os.path.splitext(file.filename)[1]}")
-        filepath = os.path.join(app.static_folder, 'uploads', filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        print('[DEBUG] Сохраняем файл по пути:', filepath)
         file.save(filepath)
-        current_user.avatar = f"uploads/{filename}"  # сохраняем путь относительно папки static
+        current_user.avatar = filename  # Сохраняем только имя файла!
         db.session.commit()
-        return jsonify(success=True, new_pic_url=current_user.avatar)
+        print('[DEBUG] Новый путь к аватару в БД:', current_user.avatar)
+        return jsonify(success=True, new_pic_url=f"/static/uploads/{filename}")
+    print('[DEBUG] Ошибка загрузки файла или неверный формат')
     return jsonify(success=False), 400
 
 @app.route('/search_friends')
