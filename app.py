@@ -6,6 +6,7 @@ from functools import wraps
 import os
 import time
 from werkzeug.utils import secure_filename
+import requests
 
 
 app = Flask(__name__)
@@ -18,6 +19,9 @@ app.config['UPLOAD_FOLDER'] = 'uploads/'  # Папка для загрузки �
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 # Создаем папку, если её нет
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+app.config['RECAPTCHA_SITE_KEY'] = '6LezhiArAAAAAAacR8X-ZOxWFqfTezOpCV5r1qve'
+app.config['RECAPTCHA_SECRET_KEY'] = '6LezhiArAAAAAFj4YjGB1IcuUXFKK_5DveqpQYul'
 
 # Инициализация SocketIO
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -140,17 +144,17 @@ def get_current_user():
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
-    # Перенаправляем, если пользователь уже вошел в систему
-    # if 'user_id' in session:
-    #     return redirect(url_for('mainWindow'))
-        
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
-        # Исправлено - проверяем подтверждение пароля
         confirm_password = request.form['confirm_password']
         
+        # Проверка капчи
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response or not verify_recaptcha(recaptcha_response):
+            return "Пожалуйста, подтвердите, что вы не робот"
+            
         if password != confirm_password:
             return "Пароли не совпадают"
             
@@ -182,10 +186,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        captcha = 'captcha' in request.form
         
-        if not captcha:
-            error = "Пожалуйста, подтвердите что вы не робот"
+        # Проверка капчи
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response or not verify_recaptcha(recaptcha_response):
+            error = "Пожалуйста, подтвердите, что вы не робот"
             return render_template('login.html', error=error)
         
         user = User.query.filter((User.name == username) | (User.email == username)).first()
@@ -1045,6 +1050,20 @@ def handle_mark_read(data):
             message.is_read = True
             db.session.commit()
             emit('message_read', {'message_id': message_id}, room=f'private_{min(message.sender_id, message.recipient_id)}_{max(message.sender_id, message.recipient_id)}')
+
+def verify_recaptcha(recaptcha_response):
+    secret_key = app.config['RECAPTCHA_SECRET_KEY']
+    verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+    
+    # Отправляем запрос на проверку капчи
+    response = requests.post(verify_url, data={
+        'secret': secret_key,
+        'response': recaptcha_response
+    })
+    
+    # Получаем результат
+    result = response.json()
+    return result.get('success', False)
 
 # Создаем таблицы при запуске
 with app.app_context():
