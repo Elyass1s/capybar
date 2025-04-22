@@ -519,7 +519,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0; /* Скрыт по умолчанию */
+  /* opacity: 0; Скрыт по умолчанию */
   transition: opacity 0.2s, background-color 0.2s;
   border: none;
 }
