@@ -156,6 +156,16 @@
         const file = event.target.files[0];
         if (!file) return;
 
+        // 1. Показываем спиннер в чате
+        const chatMessages = document.querySelector('.chat-messages');
+        const spinnerContainer = document.createElement('div');
+        spinnerContainer.className = 'chat-upload-spinner';
+        // Меняем подпись в зависимости от типа файла
+        let label = file.type.startsWith('image/') ? 'Uploading photo...' : 'Uploading video...';
+        spinnerContainer.innerHTML = `<div class="loader"></div><div style="color:#FDD367;margin-top:10px;">${label}</div>`;
+        chatMessages.appendChild(spinnerContainer);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -165,6 +175,9 @@
         })
         .then(res => res.json())
         .then(data => {
+            // 2. Удаляем спиннер после загрузки
+            spinnerContainer.remove();
+
             if (data.success && data.url) {
                 // Определяем активный чат
                 const activeChat = document.querySelector('.chat-item.active');
@@ -185,7 +198,7 @@
                         if (file.type.startsWith('image/')) {
                             content = `<img src="${data.url}" class="chat-image" style="max-width:200px;max-height:200px;">`;
                         } else if (file.type.startsWith('video/')) {
-                            content = `<video src="${data.url}" controls class="chat-video" style="max-width:200px;max-height:200px;"></video>`;
+                            content = `<video src="${data.url}" controls style="max-width:200px;max-height:200px;"></video>`;
                         }
                         sendMessage(content, roomId, chatType, recipientId);
                     }
@@ -193,6 +206,10 @@
             } else {
                 showNotification('Ошибка загрузки файла', true);
             }
+        })
+        .catch(() => {
+            spinnerContainer.remove();
+            showNotification('Ошибка загрузки файла', true);
         });
     });
 
@@ -1959,61 +1976,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Track if we're currently viewing group info
   window.isViewingGroupInfo = false;
   let currentGroupId = null;
-  
-  // Add event listeners for double-clicks on group chat items
-  // function setupGroupChatDoubleClickEvents() {
-  //   const groupChatItems = document.querySelectorAll('.chat-item[data-chat-type="group"]');
-  //   const allChatItems = document.querySelectorAll('.chat-item');
-    
-  //   groupChatItems.forEach(item => {
-  //     // Double-click handler for showing group info
-  //     item.addEventListener('dblclick', function() {
-  //       console.log('dblclick on group chat', this.getAttribute('data-group-id'));
-  //       debugger;
-  //       const groupId = this.getAttribute('data-group-id');
-  //       currentGroupId = groupId;
-        
-  //       // Fetch group details from the API
-  //       fetchGroupDetails(groupId);
-        
-  //       // Update the state
-  //       window.isViewingGroupInfo = true;
-  //     });
-  //   });
-
-  //   allChatItems.forEach(item => {
-  //     // Modify the click handler to check if we're in group info view
-  //     item.addEventListener('click', function(event) {
-  //       // If we're viewing group info, restore the chat window
-  //       if (window.isViewingGroupInfo) {
-  //         restoreChatWindow();
-  //       }
-
-  //       // Default click behavior - select the chat
-  //       document.querySelectorAll('.chat-item').forEach(chat => {
-  //         chat.classList.remove('active');
-  //       });
-  //       this.classList.add('active');
-
-  //       const chatType = this.getAttribute('data-chat-type');
-  //       if (chatType === 'group') {
-  //         const groupId = this.getAttribute('data-group-id');
-  //         loadGroupChat(groupId);
-  //       } else if (chatType === 'direct') {
-  //         const userId = this.getAttribute('data-user-id');
-  //         const userName = this.querySelector('.chat-item-name div').textContent.trim();
-  //         loadDirectChat(userId, userName);
-  //       }
-  //     });
-  //   });
-  // }
-
-  
-
-  
-      
-      // Set up the initial double-click handlers
-      
       // Add this to update handlers when group list updates
       const originalUpdateGroupsList = window.updateGroupsList;
       if (typeof originalUpdateGroupsList === 'function') {
