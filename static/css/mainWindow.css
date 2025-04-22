@@ -126,6 +126,16 @@ body {
     padding: 8px 15px;
     border-bottom: 1px solid black;
     cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .chat-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .chat-item.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 3px solid #FDD367;
   }
   
   .chat-item-name {
@@ -133,6 +143,10 @@ body {
     align-items: center;
     color: #76536B;
     font-size: 24px;
+    max-width: 70%; /* Ограничиваем ширину для длинных имен */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .chat-item img {
@@ -145,7 +159,11 @@ body {
   .chat-item-time {
     color: #76536B;
     font-size: 24px;
-    text-align: center;
+    text-align: right; /* Изменено с center на right */
+    min-width: 48px;
+    margin-left: auto; /* Добавлено для выравнивания по правому краю */
+    opacity: 0.7;
+    padding-right: 10px; /* Добавляем отступ справа */
   }
   
   /* Chat window */
@@ -965,9 +983,10 @@ body {
 .chat-item-time {
   color: #76536B;
   font-size: 24px;
-  text-align: center;
+  text-align: right; /* Изменено с center на right */
   min-width: 48px;
-  margin-left: 12px;
+  margin-left: auto; /* Добавлено для выравнивания по правому краю */
   opacity: 0.7;
+  padding-right: 10px; /* Добавляем отступ справа */
 }
 

@@ -159,16 +159,44 @@ body {
     border-radius: 8px;
 }
 
+/* Обновляем стили для captcha-container */
 .captcha-container {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    justify-content: center;
+    width: 400px;
+    height: 120px;
+    left: 228px;
+    top: 510px;
+    position: absolute;
     background: rgba(255,255,255,0.6);
     padding: 10px;
-    border-radius: 10px;
-    position: relative;
-    top: -20px;
+    border-radius: 20px;
 }
+
+/* Стили для reCAPTCHA - объединяем с прежними стилями captcha-container */
+.g-recaptcha {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 600px;
+    height: 120px;
+    left: 228px;
+    top: 510px;
+    position: absolute;
+    /* background: rgba(255,255,255,0.6); */
+    padding: 10px;
+    border-radius: 20px;
+    transform-origin: center;
+    transform: scale(1.1);
+}
+
+/* Если reCAPTCHA слишком большая, изменяем трансформацию
+@media (max-width: 1024px) {
+    .g-recaptcha {
+        transform: scale(0.9);
+    }
+} */
 
 .captcha-container input {
     margin-right: 10px;
