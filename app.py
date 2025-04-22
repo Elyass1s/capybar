@@ -1130,6 +1130,33 @@ def delete_message():
     db.session.commit()
     return jsonify({'success': True})
 
+@app.route('/update_group_avatar/<int:group_id>', methods=['POST'])
+@login_required
+def update_group_avatar(group_id):
+    file = request.files.get('group_avatar')
+    if not file:
+        return jsonify({'success': False, 'message': 'No file uploaded'}), 400
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({'success': False, 'message': 'Invalid file type'}), 400
+
+    group = db.session.get(Group, group_id)
+    if not group:
+        return jsonify({'success': False, 'message': 'Group not found'}), 404
+
+    # Только создатель или админ может менять аватар
+    current_user = get_current_user()
+    is_admin = GroupMember.query.filter_by(user_id=current_user.id, group_id=group_id, is_admin=True).first()
+    if group.creator_id != current_user.id and not is_admin:
+        return jsonify({'success': False, 'message': 'No permission'}), 403
+
+    filename = secure_filename(f"group_{group_id}_{int(time.time())}{os.path.splitext(file.filename)[1]}")
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    group.avatar = filename  # Только имя файла!
+    db.session.commit()
+    return jsonify({'success': True, 'new_avatar_url': f"/static/uploads/{filename}"})
+
 
 # Создаем таблицы при запуске
 with app.app_context():

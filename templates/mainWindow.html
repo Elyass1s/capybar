@@ -1593,6 +1593,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
     
     // Add event listeners to buttons
     addGroupInfoButtonListeners(groupId, true);
+    addGroupAvatarChangeHandler(groupId);
   }
 
   // Function to display the group member info view
@@ -1657,6 +1658,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
     
     // Add event listeners to buttons
     addGroupInfoButtonListeners(groupId, false);
+    addGroupAvatarChangeHandler(groupId);
   }
 
   
@@ -2308,6 +2310,49 @@ profilePicInput.addEventListener('change', function() {
 function normalizeAvatarPath(avatar) {
   if (!avatar) return null;
   return avatar.replace(/^uploads\//, '');
+}
+
+function addGroupAvatarChangeHandler(groupId) {
+  // Проверяем, есть ли input, если нет — создаём
+  let fileInput = document.getElementById('groupAvatarInput');
+  if (!fileInput) {
+    fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    fileInput.id = 'groupAvatarInput';
+    document.body.appendChild(fileInput);
+  }
+
+  // Находим аватар группы
+  const groupAvatar = document.querySelector('.group-avatar');
+  if (!groupAvatar) return;
+
+  groupAvatar.addEventListener('dblclick', () => {
+    fileInput.click();
+  });
+
+  fileInput.onchange = function() {
+    const file = this.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('group_avatar', file);
+
+    fetch(`/update_group_avatar/${groupId}`, {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.new_avatar_url) {
+        groupAvatar.src = data.new_avatar_url + '?t=' + Date.now();
+        showNotification('Group avatar updated!');
+      } else {
+        showNotification(data.message || 'Error updating group avatar', true);
+      }
+    })
+    .catch(() => showNotification('Error updating group avatar', true));
+  };
 }
   </script>
 </body>
