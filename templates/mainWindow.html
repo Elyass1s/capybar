@@ -712,6 +712,9 @@
      * @param {string} senderAvatar - путь к аватару отправителя (только для чужих сообщений)
      */
     function createGroupMessage(text, isSent, isRead = false, senderName = '', senderAvatar = '', messageId = null, createdAt = null) {
+      if (!isSent) {
+        console.log('[GROUPCHAT] createGroupMessage senderName:', senderName, 'senderAvatar:', senderAvatar);
+      }
       const container = document.createElement('div');
       container.className = isSent 
         ? 'message-container sent-container' 
@@ -727,7 +730,7 @@
         
         const avatar = document.createElement('img');
         avatar.className = 'sender-avatar';
-        avatar.src = senderAvatar || 'https://placehold.co/30x30';
+        avatar.src = senderAvatar || '/static/img/image 12.png';
         avatar.alt = senderName || 'User';
         
         const nameDiv = document.createElement('div');
@@ -1097,14 +1100,24 @@ document.querySelector('.input-box input').addEventListener('keypress', function
                   // Проверяем, нет ли уже такого сообщения
                   if (!chatMessages.querySelector(`.message-container[data-message-id="${msg.id}"]`)) {
                     const isSent = msg.sender_id == currentUserId;
+                    // Логируем всё, что связано с аватаром
+                    console.log('[GROUPCHAT] msg:', msg);
+                    let senderAvatarPath = '';
+                    if (!isSent && msg.sender_avatar) {
+                      senderAvatarPath = '/static/uploads/' + normalizeAvatarPath(msg.sender_avatar);
+                      console.log('[GROUPCHAT] sender_avatar (raw):', msg.sender_avatar);
+                      console.log('[GROUPCHAT] senderAvatarPath:', senderAvatarPath);
+                    } else if (!isSent) {
+                      console.log('[GROUPCHAT] Нет аватара для пользователя:', msg.sender_name, msg.sender_id);
+                    }
                     const messageEl = createGroupMessage(
                       msg.content,
                       isSent,
                       msg.is_read || false,
                       isSent ? '' : msg.sender_name,
-                      isSent ? '' : (msg.sender_avatar || ''),
+                      isSent ? '' : senderAvatarPath,
                       msg.id,
-                      msg.created_at // <-- вот это!
+                      msg.created_at
                     );
                     chatMessages.appendChild(messageEl);
                   }
@@ -1165,7 +1178,8 @@ document.querySelector('.input-box input').addEventListener('keypress', function
       
       // Add each friend to the sidebar
       friends.forEach(friend => {
-        console.log('[DEBUG] Аватар друга:', friend.avatar);
+        console.log('[DEBUG] friend:', friend);
+        console.log('[DEBUG] friend.avatar path:', friend.avatar ? '/static/uploads/' + friend.avatar : '/static/img/image 12.png');
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
         chatItem.setAttribute('data-chat-type', 'direct');
@@ -1173,7 +1187,7 @@ document.querySelector('.input-box input').addEventListener('keypress', function
         
         chatItem.innerHTML = `
           <div class="chat-item-name">
-            <img src="${friend.avatar ? '/static/uploads/' + friend.avatar : '/static/img/image 12.png'}" alt="avatar" />
+            <img src="${friend.avatar ? '/static/uploads/' + normalizeAvatarPath(friend.avatar) : '/static/img/image 12.png'}" alt="avatar" />
             <div>${friend.nickname || friend.name}</div>
           </div>
           <div class="chat-item-time"></div>
@@ -1231,6 +1245,8 @@ const timeElement = chatItem.querySelector('.chat-item-time');
       
       // Add each group to the sidebar
       groups.forEach(group => {
+        console.log('[DEBUG] group:', group);
+        console.log('[DEBUG] group.avatar path:', group.avatar ? '/static/uploads/' + group.avatar : '/static/img/image 12.png');
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item group-chat-item';
         chatItem.setAttribute('data-chat-type', 'group');
@@ -1309,6 +1325,8 @@ const timeElement = chatItem.querySelector('.chat-item-time');
               sidebar.appendChild(usersHeading);
               
               data.users.forEach(user => {
+                console.log('[DEBUG] search user:', user);
+                console.log('[DEBUG] search user.avatar path:', user.avatar ? '/static/uploads/' + user.avatar : '/static/img/image 12.png');
                 const chatItem = document.createElement('div');
                 chatItem.className = 'chat-item';
                 chatItem.setAttribute('data-chat-type', 'direct');
@@ -1343,6 +1361,8 @@ const timeElement = chatItem.querySelector('.chat-item-time');
               sidebar.appendChild(groupsHeading);
               
               data.groups.forEach(group => {
+                console.log('[DEBUG] search group:', group);
+                console.log('[DEBUG] search group.avatar path:', group.avatar ? '/static/uploads/' + group.avatar : '/static/img/image 12.png');
                 const chatItem = document.createElement('div');
                 chatItem.className = 'chat-item group-chat-item';
                 chatItem.setAttribute('data-chat-type', 'group');
@@ -2068,6 +2088,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!sidebar) return;
       sidebar.innerHTML = '';
       chats.forEach(chat => {
+        console.log('[DEBUG] chat:', chat);
+        console.log('[DEBUG] chat.avatar path:', chat.avatar ? '/static/uploads/' + chat.avatar : '/static/img/image 12.png');
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item' + (chat.type === 'group' ? ' group-chat-item' : '');
         chatItem.setAttribute('data-chat-type', chat.type);
@@ -2282,6 +2304,11 @@ profilePicInput.addEventListener('change', function() {
     showNotification('Error updating profile picture', true);
   });
 });
+
+function normalizeAvatarPath(avatar) {
+  if (!avatar) return null;
+  return avatar.replace(/^uploads\//, '');
+}
   </script>
 </body>
 </html>

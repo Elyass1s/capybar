@@ -769,25 +769,28 @@ def get_group_messages(group_id):
         
         # Получаем все сообщения группы
         messages = Message.query.filter_by(group_id=group_id).order_by(Message.created_at).all()
-        
+
+
         messages_list = []
-        
+
         for message in messages:
             sender = db.session.get(User, message.sender_id)
             messages_list.append({
                 'id': message.id,
                 'sender_id': message.sender_id,
-                'sender_name': sender.name,
+                'sender_name': sender.nickname or sender.name,
+                'sender_avatar': sender.avatar.replace('uploads/', '') if sender.avatar else None,  # <--- добавьте это!
                 'content': message.content,
                 'created_at': message.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'is_read': message.is_read 
             })
-        
+
         return jsonify({
             'success': True,
             'messages': messages_list
+
         })
-        
+
     except Exception as e:
         print(f"Get group messages error: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
