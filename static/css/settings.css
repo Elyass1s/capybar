@@ -112,7 +112,7 @@ html, body {
     top: -10px; /* Сохраняем то же положение */
     right: 60px; /* Сохраняем то же положение */
     width: calc(50% - 0px); /* Сохраняем ту же ширину */
-    height: calc(80% - 90px); /* Сохраняем ту же высоту */
+    height: calc(84% - 0px); /* Сохраняем ту же высоту */
     background-color: #FDD367;
     overflow: hidden; /* Меняем overflow-y: auto на overflow: hidden */
     box-shadow: 0 0 15px rgba(0,0,0,0.2);
