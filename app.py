@@ -1096,6 +1096,32 @@ def verify_recaptcha(recaptcha_response):
     result = response.json()
     return result.get('success', False)
 
+@app.route('/edit_message', methods=['POST'])
+@login_required
+def edit_message():
+    data = request.get_json()
+    message_id = data.get('message_id')
+    new_content = data.get('content')
+    current_user = get_current_user()
+    message = Message.query.get(message_id)
+    if not message or message.sender_id != current_user.id:
+        return jsonify({'success': False, 'message': 'No permission'}), 403
+    message.content = new_content
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/delete_message', methods=['POST'])
+@login_required
+def delete_message():
+    data = request.get_json()
+    message_id = data.get('message_id')
+    current_user = get_current_user()
+    message = Message.query.get(message_id)
+    if not message or message.sender_id != current_user.id:
+        return jsonify({'success': False, 'message': 'No permission'}), 403
+    db.session.delete(message)
+    db.session.commit()
+    return jsonify({'success': True})
 
 
 # Создаем таблицы при запуске

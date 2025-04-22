@@ -260,7 +260,22 @@
     
         deleteBtn.addEventListener('click', function(e) {
           e.stopPropagation();
-          container.remove(); // Удаляем всё сообщение
+          const messageId = container.getAttribute('data-message-id');
+          if (messageId) {
+            fetch('/delete_message', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ message_id: messageId })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                container.remove(); // Удаляем из DOM только после успеха
+              } else {
+                showNotification('Ошибка при удалении сообщения', true);
+              }
+            });
+          }
         });
     
         messageDiv.appendChild(editButton);
@@ -388,6 +403,21 @@
       
           // Переназначаем обработчики событий
           attachEventHandlers(messageElement);
+
+          const messageId = messageElement.closest('.message-container').getAttribute('data-message-id');
+          fetch('/edit_message', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message_id: messageId, content: newText })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              // Обновить UI, если нужно
+            } else {
+              showNotification('Ошибка при редактировании сообщения', true);
+            }
+          });
         }
       });
   
@@ -425,7 +455,22 @@
       if (deleteBtn) {
         deleteBtn.addEventListener('click', function(e) {
           e.stopPropagation();
-          messageElement.closest('.message-container').remove();
+          const messageId = container.getAttribute('data-message-id');
+          if (messageId) {
+            fetch('/delete_message', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ message_id: messageId })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                container.remove(); // Удаляем из DOM только после успеха
+              } else {
+                showNotification('Ошибка при удалении сообщения', true);
+              }
+            });
+          }
         });
       }
     }
@@ -752,7 +797,22 @@
         
         deleteBtn.addEventListener('click', function(e) {
           e.stopPropagation();
-          container.remove();
+          const messageId = container.getAttribute('data-message-id');
+          if (messageId) {
+            fetch('/delete_message', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ message_id: messageId })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                container.remove(); // Удаляем из DOM только после успеха
+              } else {
+                showNotification('Ошибка при удалении сообщения', true);
+              }
+            });
+          }
         });
         
         messageDiv.appendChild(editButton);
