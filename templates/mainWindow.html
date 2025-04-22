@@ -1240,6 +1240,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
             <img src="${group.avatar || '/static/img/image 12.png'}" alt="Group Avatar" />
             <div>${group.name}</div>
           </div>
+          <div class="chat-item-time"></div>
         `;
         
 const timeElement = chatItem.querySelector('.chat-item-time');
@@ -1317,6 +1318,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
                     <img src="${user.avatar || '/static/img/image 12.png'}" alt="avatar" />
                     <div>${user.name}</div>
                   </div>
+                  <div class="chat-item-time"></div>
                 `;
                 
 const timeElement = chatItem.querySelector('.chat-item-time');
@@ -1350,6 +1352,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
                     <img src="${group.avatar || '/static/img/image 12.png'}" alt="Group Avatar" />
                     <div>${group.name}</div>
                   </div>
+                  <div class="chat-item-time"></div>
                 `;
 
                 const timeElement = chatItem.querySelector('.chat-item-time');
@@ -1357,31 +1360,8 @@ const timeElement = chatItem.querySelector('.chat-item-time');
                   const dateObj = new Date(group.last_time);
                   timeElement.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 } else {
-                  timeElement.textCo
-                // Добавляем обработчик клика
-                // chatItem.addEventListener('click', function() {
-                //   document.querySelectorAll('.chat-item').forEach(chat => {
-                //     chat.classList.remove('active');
-                //   });
-                //   this.classList.add('active');
-                  
-                //   const groupId = this.getAttribute('data-group-id');
-                //   loadGroupChat(groupId);
-                // });
-ntent = '';
+                  timeElement.textContent = '';
                 }
-
-                // Добавляем обработчик клика
-                // chatItem.addEventListener('click', function() {
-                //   document.querySelectorAll('.chat-item').forEach(chat => {
-                //     chat.classList.remove('active');
-                //   });
-                //   this.classList.add('active');
-                  
-                //   const groupId = this.getAttribute('data-group-id');
-                //   loadGroupChat(groupId);
-                // });
-                
                 sidebar.appendChild(chatItem);
               });
             }
@@ -2242,6 +2222,35 @@ sidebar.addEventListener('dblclick', function(e) {
   window.isViewingGroupInfo = true;
   console.log('[DEBUG] dblclick on group chat', groupId);
   fetchGroupDetails(groupId);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.querySelector('.search-container input');
+  const searchButton = document.querySelector('.search-container .all-button');
+
+  // Поиск при каждом изменении поля
+  searchInput.addEventListener('input', function() {
+    if (this.value.trim() === '') {
+      // Показываем все переписки, если поле пустое
+      fetchChats('all');
+    } else {
+      searchChatsAndUsers();
+    }
+  });
+
+  // Можно оставить обработчик Enter для совместимости
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      searchChatsAndUsers();
+    }
+  });
+
+  // Поиск по кнопке (если нужно)
+  if (searchButton) {
+    searchButton.addEventListener('click', function() {
+      searchChatsAndUsers();
+    });
+  }
 });
   </script>
 </body>
