@@ -18,8 +18,9 @@
       <span class="title-friend">Your Friend</span>
     </div>
     
-    <div class="input-container">
-      <input type="text" class="input-field" placeholder="Name or Email">
+    <div class="input-container" style="position:relative;">
+      <input type="text" class="input-field" placeholder="Name or Email" autocomplete="off">
+      <div class="autocomplete-list" style="position:absolute; top:100%; left:0; right:0; z-index:10;"></div>
     </div>
     
     <button class="add-button">
@@ -135,6 +136,43 @@
         }
       `;
       document.head.appendChild(style);
+
+      const inputField = document.querySelector('.input-field');
+      const autocompleteList = document.querySelector('.autocomplete-list');
+
+      inputField.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length < 1) {
+          autocompleteList.innerHTML = '';
+          return;
+        }
+        fetch('/search_friends?q=' + encodeURIComponent(query))
+          .then(res => res.json())
+          .then(data => {
+            autocompleteList.innerHTML = '';
+            if (data.friends && data.friends.length) {
+              data.friends.forEach(friend => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = friend.name + ' (' + friend.email + ')';
+                item.style.padding = '8px 12px';
+                item.style.cursor = 'pointer';
+                item.style.background = '#fff';
+                item.style.borderBottom = '1px solid #eee';
+                item.addEventListener('mousedown', function() {
+                  inputField.value = friend.email;
+                  autocompleteList.innerHTML = '';
+                });
+                autocompleteList.appendChild(item);
+              });
+            }
+          });
+      });
+
+      // Скрывать список при потере фокуса
+      inputField.addEventListener('blur', () => {
+        setTimeout(() => autocompleteList.innerHTML = '', 100);
+      });
     </script>
 </body>
 </html>

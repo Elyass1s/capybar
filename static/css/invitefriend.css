@@ -79,7 +79,7 @@ body {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    z-index: 2;
+    z-index: 1;
     border: none;
     padding: 0;
     font-family: 'Konkhmer Sleokchher', cursive;
@@ -88,4 +88,51 @@ body {
   .add-text {
     color: white;
     font-size: 42px;
+  }
+
+  .autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px 0 rgba(48, 103, 72, 0.18);
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: 8px;
+    padding: 6px 0;
+    border: 2px solid #5FC08A;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .autocomplete-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .autocomplete-item {
+    padding: 14px 28px;
+    font-size: 28px;
+    color: #306748;
+    font-family: 'Konkhmer Sleokchher', cursive;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 10px;
+    margin: 2px 8px;
+    display: flex;
+    align-items: center;
+  }
+
+  .autocomplete-item:hover,
+  .autocomplete-item.active {
+    background: #fdd367;
+    color: #7E453D;
+  }
+
+  .autocomplete-list:empty {
+    display: none;
   }

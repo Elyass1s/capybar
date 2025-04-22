@@ -1046,6 +1046,37 @@ def handle_mark_read(data):
             db.session.commit()
             emit('message_read', {'message_id': message_id}, room=f'private_{min(message.sender_id, message.recipient_id)}_{max(message.sender_id, message.recipient_id)}')
 
+@app.route('/update_profile_pic', methods=['POST'])
+@login_required
+def update_profile_pic():
+    file = request.files.get('profile_pic')
+    def allowed_file(filename):
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+    if file and allowed_file(file.filename):
+        current_user = get_current_user()  # Retrieve the current user
+        filename = secure_filename(f"avatar_{current_user.id}_{int(time.time())}{os.path.splitext(file.filename)[1]}")
+        filepath = os.path.join(app.static_folder, 'uploads', filename)
+        file.save(filepath)
+        current_user.avatar = f"uploads/{filename}"  # сохраняем путь относительно папки static
+        db.session.commit()
+        return jsonify(success=True, new_pic_url=current_user.avatar)
+    return jsonify(success=False), 400
+
+@app.route('/search_friends')
+@login_required
+def search_friends():
+    q = request.args.get('q', '').lower()
+    # Найти всех пользователей, кроме себя и уже добавленных друзей
+    current_user = get_current_user()  # Retrieve the current user
+    friends = User.query.filter(
+        User.id != current_user.id,
+        ~User.id.in_([f.id for f in current_user.friendships]),
+        (User.name.ilike(f'%{q}%')) | (User.email.ilike(f'%{q}%'))
+    ).limit(10).all()
+    return jsonify({'friends': [{'name': f.name, 'email': f.email} for f in friends]})
+
 # Создаем таблицы при запуске
 with app.app_context():
     db.create_all()

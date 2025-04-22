@@ -17,7 +17,8 @@
     <div class="title">My Profile</div>
     
     <div class="profile-pic-container">
-      <img class="profile-pic" src="{{ current_user.avatar or 'https://placehold.co/259x259' }}" />
+      <img class="profile-pic" src="/static/img/image 86.png" id="profilePic" />
+      <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
     </div>
     
     <div class="field-label nickname-label">Nickname</div>
@@ -226,6 +227,35 @@
       
       return age + ' y.o.';
     }
+
+    const profilePic = document.getElementById('profilePic');
+    const profilePicInput = document.getElementById('profilePicInput');
+
+    profilePic.addEventListener('dblclick', () => {
+      profilePicInput.click();
+    });
+
+    profilePicInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('profile_pic', file);
+
+      fetch('/update_profile_pic', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.new_pic_url) {
+          profilePic.src = data.new_pic_url + '?t=' + Date.now(); // обновить аватарку без кэша
+        } else {
+          showNotification('Error updating profile picture', true);
+        }
+      })
+      .catch(() => showNotification('Error updating profile picture', true));
+    });
   </script>
 </body>
 </html>
