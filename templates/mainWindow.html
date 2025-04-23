@@ -1035,6 +1035,28 @@ document.querySelector('.input-box input').addEventListener('keypress', function
                   }
                 });
               });
+
+              // Mark unread messages as read
+              if (data.success && data.messages) {
+                const currentUserId = document.body.getAttribute('data-user-id');
+                const unreadMessages = data.messages.filter(msg => 
+                  !msg.is_read && msg.sender_id != currentUserId
+                );
+                
+                // Mark each unread message as read
+                unreadMessages.forEach(msg => {
+                  markMessageAsRead(msg.id);
+                });
+                
+                // Update the unread count in sidebar (remove the badge)
+                const chatItem = document.querySelector(`.chat-item[data-user-id="${userId}"]`);
+                if (chatItem) {
+                  const unreadBadge = chatItem.querySelector('.unread-count');
+                  if (unreadBadge) {
+                    unreadBadge.remove();
+                  }
+                }
+              }
             } else {
               showNotification('Error loading messages: ' + data.message, true);
             }
@@ -1141,6 +1163,28 @@ document.querySelector('.input-box input').addEventListener('keypress', function
                 });
               }
               chatMessages.scrollTop = chatMessages.scrollHeight;
+
+              // Mark unread messages as read
+              if (data.success && data.messages) {
+                const currentUserId = document.body.getAttribute('data-user-id');
+                const unreadMessages = data.messages.filter(msg => 
+                  !msg.is_read && msg.sender_id != currentUserId
+                );
+                
+                // Mark each unread message as read
+                unreadMessages.forEach(msg => {
+                  markMessageAsRead(msg.id);
+                });
+                
+                // Update the unread count in sidebar (remove the badge)
+                const chatItem = document.querySelector(`.chat-item[data-group-id="${groupId}"]`);
+                if (chatItem) {
+                  const unreadBadge = chatItem.querySelector('.unread-count');
+                  if (unreadBadge) {
+                    unreadBadge.remove();
+                  }
+                }
+              }
             } else {
               showNotification('Error loading messages: ' + data.message, true);
             }
@@ -2065,8 +2109,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <img src="${chat.avatar ? '/static/uploads/' + chat.avatar : '/static/img/image 12.png'}" alt="avatar" />
             <div>${chat.name}</div>
           </div>
-          <div class="chat-item-time"></div>
-          ${chat.unread_count > 0 ? '<div class="unread-indicator"></div>' : ''}
+          <div class="chat-item-right">
+            ${chat.unread_count > 0 ? `<div class="unread-count">${chat.unread_count}</div>` : ''}
+            <div class="chat-item-time"></div>
+          </div>
         `;
         
         const timeElement = chatItem.querySelector('.chat-item-time');
@@ -2315,6 +2361,129 @@ function addGroupAvatarChangeHandler(groupId) {
     })
     .catch(() => showNotification('Error updating group avatar', true));
   };
+}
+
+// Inside the socket.on('new_message') handler:
+
+socket.on('new_message', (data) => {
+  console.log('New message received:', data);
+  
+  // Check if message belongs to currently active chat
+  const activeChat = document.querySelector('.chat-item.active');
+  if (activeChat) {
+    // ... existing chat message display logic ...
+    
+    // If this is an active chat, mark the message as read immediately
+    if (messageForActiveChat && !isSentByMe) {
+      markMessageAsRead(data.id);
+    }
+  } else {
+    // Message is for a non-active chat, update unread count
+    updateUnreadCount(data);
+  }
+});
+
+// Function to update unread count for a chat item
+function updateUnreadCount(messageData) {
+  const currentUserId = document.body.getAttribute('data-user-id');
+  
+  // Skip if the message is from the current user
+  if (messageData.sender_id == currentUserId) return;
+  
+  let chatItem;
+  if (messageData.group_id) {
+    chatItem = document.querySelector(`.chat-item[data-group-id="${messageData.group_id}"]`);
+  } else {
+    chatItem = document.querySelector(`.chat-item[data-user-id="${messageData.sender_id}"]`);
+  }
+  
+  if (chatItem) {
+    // Get existing unread count
+    let unreadBadge = chatItem.querySelector('.unread-count');
+    const chatItemRight = chatItem.querySelector('.chat-item-right');
+    
+    if (unreadBadge) {
+      // Increment existing badge
+      let count = parseInt(unreadBadge.textContent) || 0;
+      unreadBadge.textContent = count + 1;
+    } else {
+      // Create new badge
+      unreadBadge = document.createElement('div');
+      unreadBadge.className = 'unread-count';
+      unreadBadge.textContent = '1';
+      
+      // Insert it before the time element
+      const timeElement = chatItem.querySelector('.chat-item-time');
+      if (chatItemRight && timeElement) {
+        chatItemRight.insertBefore(unreadBadge, timeElement);
+      }
+    }
+    
+    // Move the chat to the top of the list
+    const sidebar = chatItem.parentNode;
+    if (sidebar) {
+      sidebar.insertBefore(chatItem, sidebar.firstChild);
+    }
+  }
+}
+
+// Update the existing message_read handler
+
+socket.on('message_read', (data) => {
+  // Update the message read status
+  const messageElement = document.querySelector(`.message-container[data-message-id="${data.message_id}"]`);
+  if (messageElement) {
+    const readStatus = messageElement.querySelector('.read-status');
+    if (readStatus) {
+      readStatus.classList.remove('unread');
+      readStatus.classList.add('read');
+      readStatus.innerHTML = '✔✔'; // Double check mark for read
+    }
+  }
+  
+  // If all messages in a chat are now read, the sender's UI should update
+  // to remove the unread count for the recipient
+  updateChatReadStatus();
+});
+
+function updateChatReadStatus() {
+  // Get current active chat
+  const activeChat = document.querySelector('.chat-item.active');
+  if (!activeChat) return;
+  
+  // Check if all messages are read
+  const unreadMessages = document.querySelectorAll('.message-container .read-status.unread');
+  if (unreadMessages.length === 0) {
+    // All messages read, update the sidebar
+    fetch('/get_chats?filter=all')
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          updateChatSidebar(data.chats);
+        }
+      });
+  }
+}
+
+function markMessageAsRead(messageId) {
+  // Only proceed if the socket is connected
+  if (!socket || !socketConnected) {
+    console.log('Socket not connected, cannot mark message as read');
+    return;
+  }
+  
+  socket.emit('mark_read', { message_id: messageId });
+  
+  // Also update UI immediately
+  const messageElement = document.querySelector(`.message-container[data-message-id="${messageId}"]`);
+  if (messageElement) {
+    const readStatus = messageElement.querySelector('.read-status');
+    if (readStatus) {
+      readStatus.classList.remove('unread');
+      readStatus.classList.add('read');
+      readStatus.innerHTML = '✔✔';
+    }
+  }
 }
   </script>
 </body>

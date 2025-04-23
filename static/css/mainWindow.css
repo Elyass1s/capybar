@@ -127,6 +127,7 @@ body {
     border-bottom: 1px solid black;
     cursor: pointer;
     transition: background-color 0.2s;
+    align-items: center;
   }
   
   .chat-item:hover {
@@ -1010,5 +1011,28 @@ body {
 @keyframes spin {
   0% { transform: rotate(0deg);}
   100% { transform: rotate(360deg);}
+}
+
+/* Add these styles to the end of your CSS file */
+
+.chat-item-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.unread-count {
+  background-color: #FDD367;
+  color: #7E453D;
+  border-radius: 50%;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2px;
+  margin-right: 8px;
+  font-size: 14px;
+  font-weight: bold;
 }
 
