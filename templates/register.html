@@ -19,13 +19,18 @@
             <input type="password" class="input-field confirm-field" name="confirm_password" placeholder="Confirm" required>
             <input type="email" class="input-field email-field" name="email" placeholder="Email" required>
             
-            <!-- Убрал обертку captcha-container, оставил только g-recaptcha -->
             <div class="g-recaptcha" data-sitekey="{{ config['RECAPTCHA_SITE_KEY'] }}"></div>
             
             <button type="submit" class="register-button">
                 <span class="register-text">Register</span>
             </button>
         </form>
+        <button type="button" class="back-arrow-btn" onclick="window.location.href='/login'" aria-label="Back to Login">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="24" fill="#FDD367" />
+                <path d="M28 34L18 24L28 14" stroke="#7E453D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
     </div>
 </body>
 </html>

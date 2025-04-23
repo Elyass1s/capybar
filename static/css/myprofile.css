@@ -91,23 +91,23 @@ body {
     text-align: left;
   }
   
-  .nickname-label { top: 280px; }
-  .nickname-value { top: 305px; }
-  
-  .name-label { top: 350px; }
-  .name-value { top: 375px; }
-  
-  .password-label { top: 420px; }
-  .password-value { top: 445px; }
-  
-  .dob-label { top: 490px; }
-  .dob-value { top: 515px; }
-  
-  .bio-label { top: 560px; }
-  .bio-value { top: 585px; }
-  
-  .email-label { top: 630px; }
-  .email-value { top: 655px; }
+  .nickname-label { top: 300px; }
+  .nickname-value { top: 315px; }
+
+  .name-label { top: 390px; }
+  .name-value { top: 405px; }
+
+  .password-label { top: 480px; }
+  .password-value { top: 495px; }
+
+  .dob-label { top: 570px; }
+  .dob-value { top: 585px; }
+
+  .bio-label { top: 660px; }
+  .bio-value { top: 675px; }
+
+  .email-label { top: 750px; }
+  .email-value { top: 765px; }
   
 
   .change-button {
@@ -132,4 +132,3 @@ body {
   .change-button:active {
     transform: scale(0.95);
   }
- 
