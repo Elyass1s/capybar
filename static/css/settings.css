@@ -121,12 +121,17 @@ html, body {
     border-radius: 20px;
     transition: all 0.3s ease;
     margin: 20px; /* Сохраняем те же отступы */
+    opacity: 0;
+    transform: translateX(60px) scale(0.98);
+    transition: opacity 0.35s cubic-bezier(.4,0,.2,1), transform 0.35s cubic-bezier(.4,0,.2,1);
   }
   
   
   /* Видимость правой панели */
   .right-panel.visible {
     display: block;
+    opacity: 1;
+    transform: translateX(0) scale(1);
   }
   
     /* Стили для содержимого панели */
@@ -200,3 +205,46 @@ html, body {
       height: calc(1024px * (100vw / 1440));
     }
   }
+
+/* mainWindow.css, register.css, settings.css */
+button, .tab, .all-button, .register-button, .create-button, .add-button, .control-button {
+  transition: transform 0.15s cubic-bezier(.4,0,.2,1), box-shadow 0.15s;
+}
+button:hover, .tab:hover, .all-button:hover, .register-button:hover, .create-button:hover, .add-button:hover, .control-button:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 24px 0 rgba(48, 103, 72, 0.13);
+}
+button:active, .tab:active, .all-button:active, .register-button:active, .create-button:active, .add-button:active, .control-button:active {
+  transform: scale(0.97);
+}
+
+/* settings.css */
+.right-panel {
+  opacity: 0;
+  transform: translateX(60px) scale(0.98);
+  transition: opacity 0.35s cubic-bezier(.4,0,.2,1), transform 0.35s cubic-bezier(.4,0,.2,1);
+}
+.right-panel.visible {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+/* mainWindow.css (для .modal) */
+.modal {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal[style*="display: flex"], .modal[style*="display: block"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.profile-pic-container {
+  animation: pulseGlow 2s infinite alternate;
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 #FDD36744; }
+  100% { box-shadow: 0 0 24px 8px #FDD36788; }
+}
+

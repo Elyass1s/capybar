@@ -58,6 +58,21 @@ body {
     width: 200px;
     height: 200px;
     border-radius: 100px;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  
+  .profile-pic:hover {
+    box-shadow: 0 4px 24px #FDD36788;
+    transform: scale(1.04);
+  }
+  
+  .profile-pic, .group-avatar {
+    animation: pulseGlow 2s infinite alternate;
+  }
+  
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 #FDD36744; }
+    100% { box-shadow: 0 0 24px 8px #FDD36788; }
   }
   
   /* Фиксированное позиционирование для всех меток и значений */

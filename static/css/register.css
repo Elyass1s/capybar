@@ -243,9 +243,22 @@ body {
     transition: box-shadow 0.2s;
     box-shadow: 0 2px 8px 0 rgba(48, 103, 72, 0.10);
     border-radius: 50%;
+    transition: transform 0.2s;
 }
 .back-arrow-btn:hover svg {
     box-shadow: 0 4px 16px 0 rgba(253, 211, 103, 0.25);
-    transform: scale(1.08);
+    transform: translateX(-6px) scale(1.08);
+}
+
+/* mainWindow.css, register.css, settings.css */
+button, .tab, .all-button, .register-button, .create-button, .add-button, .control-button {
+  transition: transform 0.15s cubic-bezier(.4,0,.2,1), box-shadow 0.15s;
+}
+button:hover, .tab:hover, .all-button:hover, .register-button:hover, .create-button:hover, .add-button:hover, .control-button:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 24px 0 rgba(48, 103, 72, 0.13);
+}
+button:active, .tab:active, .all-button:active, .register-button:active, .create-button:active, .add-button:active, .control-button:active {
+  transform: scale(0.97);
 }
 

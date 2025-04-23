@@ -113,6 +113,7 @@ body {
   align-items: center;
   padding: 5px 15px;
   border-bottom: 1px solid black;
+  animation: fadeInList 0.4s cubic-bezier(.4,0,.2,1);
 }
 
 .member:last-child {
@@ -270,4 +271,13 @@ body {
   .chat-window .button-text {
     font-size: 1rem;
   }
+}
+
+/* mainWindow.css, newgroup.css, groupinfoadmin.css, groupinfomember.css */
+@keyframes fadeInList {
+  from { opacity: 0; transform: translateY(20px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.chat-item, .friend-item, .member {
+  animation: fadeInList 0.4s cubic-bezier(.4,0,.2,1);
 }
