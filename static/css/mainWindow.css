@@ -746,6 +746,29 @@ body {
   display: flex;
 }
 
+.delete-chat-btn,
+.block-user-btn {
+  background: #306748; /* или ваш зеленый */
+  border: none;
+  border-radius: 50%;
+  padding: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.block-user-btn svg {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.block-user-btn:hover svg circle,
+.block-user-btn:hover svg line {
+  stroke: #ffb81d !important;
+}
+
 /* Стили для поисковой строки */
 .search-container input {
   width: 400px;

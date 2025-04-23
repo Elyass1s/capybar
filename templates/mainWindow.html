@@ -25,7 +25,7 @@
       <div class="filter-dropdown">
         <button type="button" class="all-button" id="filterButton">All</button>
         <div class="filter-dropdown-content" id="filterDropdown">
-          <button type="button" class="filter-option" data-filter="all">All</button>
+          <button type="button" class="filter-option" data-filter="all">All(Chats)</button>
           <button type="button" class="filter-option" data-filter="direct">Directs</button>
           <button type="button" class="filter-option" data-filter="group">Groups</button>
         </div>
@@ -56,6 +56,13 @@
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
               <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6h16z" stroke="#F44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M10 11v6M14 11v6" stroke="#F44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="block-user-btn green-btn" title="Block user" style="margin-left:10px;">
+            <!-- SVG иконка блокировки -->
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="background:none;">
+              <circle cx="12" cy="12" r="10" stroke="#FDD367" stroke-width="2"/>
+              <line x1="8" y1="8" x2="16" y2="16" stroke="#FDD367" stroke-width="2"/>
             </svg>
           </button>
         </div>
@@ -308,21 +315,32 @@
       time.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
       // Статус прочтения (только для своих сообщений)
-      if (isSent) {
-        const status = document.createElement('span');
-        status.className = 'read-status';
-        if (isRead) {
-          status.innerHTML = '✔✔'; // Прочитано (двойная галочка)
-          status.classList.add('read');
-        } else if (isDelivered) {
-          status.innerHTML = '✔'; // Доставлено (одинарная галочка)
-          status.classList.add('delivered');
-        } else {
-          status.innerHTML = '⏳'; // Отправлено (ожидание)
-          status.classList.add('sent');
-        }
-        footer.appendChild(status);
+    if (isSent) {
+      const readStatus = document.createElement('span');
+      readStatus.className = isRead ? 'read-status read' : 'read-status unread';
+      
+      // Создаем SVG-иконку статуса
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '16');
+      svg.setAttribute('height', '11');
+      svg.setAttribute('viewBox', '0 0 16 12');
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      if (isRead) {
+        path.setAttribute('d', 'M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z');
+      } else if (isDelivered) {
+        path.setAttribute('d', 'M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z');
+      } else {
+        // Для статуса "отправлено" (не доставлено)
+        path.setAttribute('d', 'M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z');
+        path.setAttribute('fill', '#aaaaaa'); // Более светлый цвет для отправленных
       }
+      path.setAttribute('fill', 'currentColor');
+      
+      svg.appendChild(path);
+      readStatus.appendChild(svg);
+      footer.appendChild(readStatus);
+    }
     
       footer.appendChild(time);
       messageDiv.appendChild(footer);
@@ -2043,6 +2061,86 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+
+
+    
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const statusCircle = document.querySelector('.status-circle');
+      const deleteChatWidget = document.getElementById('deleteChatWidget');
+      const blockBtn = deleteChatWidget.querySelector('.block-user-btn');
+      
+      // Добавляем обработчик для желтого круга
+      if (statusCircle) {
+        statusCircle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          
+          // Проверяем тип активного чата перед показом виджета
+          const activeChat = document.querySelector('.chat-item.active');
+          if (activeChat) {
+            const chatType = activeChat.getAttribute('data-chat-type');
+            
+            // Показываем/скрываем кнопку блокировки в зависимости от типа чата
+            if (chatType === 'direct') {
+              blockBtn.style.display = ''; // Показываем для директ-чатов
+            } else {
+              blockBtn.style.display = 'none'; // Скрываем для групповых чатов
+            }
+          } else {
+            // Если нет активного чата, скрываем кнопку блокировки
+            blockBtn.style.display = 'none';
+          }
+          
+          // Показываем/скрываем виджет
+          deleteChatWidget.classList.toggle('visible');
+        });
+      }
+      
+      if (blockBtn) {
+        blockBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          // Получаем активный чат
+          const activeChat = document.querySelector('.chat-item.active');
+          if (!activeChat) {
+            showNotification('No chat selected', true);
+            deleteChatWidget.classList.remove('visible');
+            return;
+          }
+          const chatType = activeChat.getAttribute('data-chat-type');
+          if (chatType === 'direct') {
+            const userId = activeChat.getAttribute('data-user-id');
+            console.log('Blocking user ID:', userId); // Должен быть числом
+            if (!userId) {
+              showNotification('Cannot identify user ID', true);
+              deleteChatWidget.classList.remove('visible');
+              return;
+            }
+            fetch('/block_user', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ user_id: userId })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                showNotification('User blocked');
+              } else {
+                showNotification(data.message || 'Failed to block user', true);
+              }
+            })
+            .catch(() => {
+              showNotification('Failed to block user', true);
+            });
+          } else {
+            showNotification('Blocking is only available for direct chats', true);
+          }
+          deleteChatWidget.classList.remove('visible');
+        });
+      }
+    });
+
+    
+
     document.addEventListener('click', function(event) {
       // Проверяем, кликнули ли по картинке в сообщении
       if (event.target.classList.contains('chat-image')) {
@@ -2161,36 +2259,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
-            // В конец <script> или после DOMContentLoaded
-
-              document.addEventListener('DOMContentLoaded', function() {
-      const statusCircle = document.querySelector('.status-circle');
-      const deleteChatWidget = document.getElementById('deleteChatWidget');
-      const deleteBtn = document.querySelector('.delete-chat-btn');
-
-      if (statusCircle && deleteChatWidget) {
-        statusCircle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          deleteChatWidget.classList.toggle('visible');
-        });
-
-        // Закрыть виджет при клике вне его
-        document.addEventListener('click', function(e) {
-          if (!deleteChatWidget.contains(e.target) && !statusCircle.contains(e.target)) {
-            deleteChatWidget.classList.remove('visible');
-          }
-        });
-      }
-
-      // Обработчик нажатия на мусорку
-      if (deleteBtn) {
-        deleteBtn.addEventListener('click', function() {
-          // Ваш код удаления чата
-          showNotification('Delete chat clicked!');
-          // Здесь вызовите функцию удаления чата
-        });
-      }
-    });
+     
 
     const statusCircle = document.querySelector('.status-circle');
     const deleteChatWidget = document.getElementById('deleteChatWidget');
@@ -2437,12 +2506,23 @@ socket.on('message_read', (data) => {
     if (readStatus) {
       readStatus.classList.remove('unread');
       readStatus.classList.add('read');
-      readStatus.innerHTML = '✔✔'; // Double check mark for read
+      
+      // Заменить на SVG для двойной галочки
+      readStatus.innerHTML = '';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '16');
+      svg.setAttribute('height', '11');
+      svg.setAttribute('viewBox', '0 0 16 12');
+      
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z');
+      path.setAttribute('fill', 'currentColor');
+      
+      svg.appendChild(path);
+      readStatus.appendChild(svg);
     }
   }
   
-  // If all messages in a chat are now read, the sender's UI should update
-  // to remove the unread count for the recipient
   updateChatReadStatus();
 });
 

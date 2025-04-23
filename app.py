@@ -7,6 +7,7 @@ import os
 import time
 from werkzeug.utils import secure_filename
 import requests
+from sqlalchemy import text  # Добавьте этот импорт в начало файла
 
 
 app = Flask(__name__)
@@ -1102,6 +1103,47 @@ def verify_recaptcha(recaptcha_response):
     # Получаем результат
     result = response.json()
     return result.get('success', False)
+
+
+@app.route('/block_user', methods=['POST'])
+@login_required
+def block_user():
+    data = request.json
+    user_id = data.get('user_id')
+    
+    if not user_id:
+        return jsonify({'success': False, 'message': 'ID пользователя не указан'})
+    
+    try:
+        current_user = get_current_user()
+        print(f"Блокировка пользователя: {user_id} пользователем {current_user.id}")
+
+        # Проверка существования записей перед удалением
+        friendship_records = db.session.execute(
+            text("SELECT COUNT(*) FROM friendship WHERE "
+            "(user_id = :current_user AND friend_id = :blocked_user) OR "
+            "(user_id = :blocked_user AND friend_id = :current_user)"),
+            {'current_user': current_user.id, 'blocked_user': user_id}
+        ).scalar()
+        
+        print(f"Найдено записей о дружбе: {friendship_records}")
+        
+        # Удаляем дружбу в обе стороны
+        result = db.session.execute(
+            text("DELETE FROM friendship WHERE "
+            "(user_id = :current_user AND friend_id = :blocked_user) OR "
+            "(user_id = :blocked_user AND friend_id = :current_user)"),
+            {'current_user': current_user.id, 'blocked_user': user_id}
+        )
+        
+        print(f"Удалено записей: {result.rowcount}")
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Пользователь заблокирован'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Ошибка блокировки пользователя: {str(e)}")
+        return jsonify({'success': False, 'message': f'Произошла ошибка при блокировке: {str(e)}'})
 
 @app.route('/edit_message', methods=['POST'])
 @login_required
