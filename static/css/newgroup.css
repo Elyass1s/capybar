@@ -222,3 +222,12 @@ body {
   .create-button:active {
     transform: scale(0.98);
   }
+
+  /* mainWindow.css, newgroup.css, groupinfoadmin.css, groupinfomember.css */
+  @keyframes fadeInList {
+    from { opacity: 0; transform: translateY(20px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+  .chat-item, .friend-item, .member {
+    animation: fadeInList 0.4s cubic-bezier(.4,0,.2,1);
+  }

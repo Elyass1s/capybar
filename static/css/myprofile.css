@@ -58,6 +58,21 @@ body {
     width: 200px;
     height: 200px;
     border-radius: 100px;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  
+  .profile-pic:hover {
+    box-shadow: 0 4px 24px #FDD36788;
+    transform: scale(1.04);
+  }
+  
+  .profile-pic, .group-avatar {
+    animation: pulseGlow 2s infinite alternate;
+  }
+  
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 #FDD36744; }
+    100% { box-shadow: 0 0 24px 8px #FDD36788; }
   }
   
   /* Фиксированное позиционирование для всех меток и значений */
@@ -91,23 +106,23 @@ body {
     text-align: left;
   }
   
-  .nickname-label { top: 280px; }
-  .nickname-value { top: 305px; }
-  
-  .name-label { top: 350px; }
-  .name-value { top: 375px; }
-  
-  .password-label { top: 420px; }
-  .password-value { top: 445px; }
-  
-  .dob-label { top: 490px; }
-  .dob-value { top: 515px; }
-  
-  .bio-label { top: 560px; }
-  .bio-value { top: 585px; }
-  
-  .email-label { top: 630px; }
-  .email-value { top: 655px; }
+  .nickname-label { top: 300px; }
+  .nickname-value { top: 315px; }
+
+  .name-label { top: 390px; }
+  .name-value { top: 405px; }
+
+  .password-label { top: 480px; }
+  .password-value { top: 495px; }
+
+  .dob-label { top: 570px; }
+  .dob-value { top: 585px; }
+
+  .bio-label { top: 660px; }
+  .bio-value { top: 675px; }
+
+  .email-label { top: 750px; }
+  .email-value { top: 765px; }
   
 
   .change-button {
@@ -132,4 +147,3 @@ body {
   .change-button:active {
     transform: scale(0.95);
   }
- 

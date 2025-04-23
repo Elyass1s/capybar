@@ -796,44 +796,49 @@ body {
   display: inline-block;
 }
 
+/* Улучшенный стиль для кнопок .filter-option в выпадающем фильтре */
 .filter-dropdown-content {
   display: none;
   position: absolute;
   right: 0;
   top: 110%;
   background: #fffbe9;
-  min-width: 140px;
-  box-shadow: 0 8px 24px 0 rgba(48, 103, 72, 0.15);
-  border-radius: 14px;
+  min-width: 170px;
+  box-shadow: 0 8px 24px 0 rgba(48, 103, 72, 0.18);
+  border-radius: 18px;
   z-index: 10;
-  padding: 8px 0;
+  padding: 10px 0;
   animation: fadeIn 0.2s;
-  border: 1px solid #fdd367;
-}
-
-.filter-dropdown-content.show {
-  display: block;
+  border: 2px solid #fdd367;
 }
 
 .filter-option {
   font-family: 'Konkhmer Sleokchher', cursive;
   color: #306748;
-  font-size: 18px;
-  padding: 10px 24px;
+  font-size: 22px;
+  padding: 14px 32px;
   background: none;
   border: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.18s, color 0.18s, font-weight 0.18s;
   outline: none;
+  border-radius: 0;
+  letter-spacing: 0.5px;
+}
+
+.filter-option:not(:last-child) {
+  border-bottom: 1px solid #f3e3b7;
 }
 
 .filter-option:hover,
 .filter-option.active {
-  background: #fdd367;
+  background: linear-gradient(90deg, #fdd367 80%, #ffe9b3 100%);
   color: #7e453d;
   font-weight: bold;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px 0 rgba(253, 211, 103, 0.07);
 }
 
 @keyframes fadeIn {
@@ -880,6 +885,19 @@ body {
 
 .filter-dropdown-content.show {
   display: block;
+  width: 400px;
+  height: auto;
+  min-height: 60px;
+  background-color: transparent;
+  border-radius: 25px;
+  box-shadow: 0 4px 24px 0 rgba(48, 103, 72, 0.18);
+  border: none;
+  padding: 0px 0;
+  margin-top: 8px;
+  z-index: 10;
+  transition: box-shadow 0.2s, background 0.2s;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-option {
@@ -1057,5 +1075,82 @@ body {
   margin-right: 8px;
   font-size: 14px;
   font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: popUnread 0.3s;
+}
+
+@keyframes popUnread {
+  0% { transform: scale(0.5);}
+  70% { transform: scale(1.2);}
+  100% { transform: scale(1);}
+}
+
+/* Стили для кнопок .filter-option в стиле самой filter-dropdown */
+.filter-option {
+  font-family: 'Konkhmer Sleokchher', cursive;
+  color: #7E453D;
+  font-size: 22px;
+  padding: 16px 36px;
+  background: #FDD367;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, font-weight 0.18s, box-shadow 0.18s;
+  outline: none;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px 0 rgba(48, 103, 72, 0.10);
+}
+
+.filter-option:not(:last-child) {
+  border-bottom: none;
+}
+
+.filter-option:hover,
+.filter-option.active {
+  background: #ffcb4f;
+  color: #306748;
+  font-weight: bold;
+  box-shadow: 0 4px 16px 0 rgba(253, 211, 103, 0.15);
+}
+
+/* mainWindow.css, register.css, settings.css */
+button, .tab, .all-button, .register-button, .create-button, .add-button, .control-button {
+  transition: transform 0.15s cubic-bezier(.4,0,.2,1), box-shadow 0.15s;
+}
+button:hover, .tab:hover, .all-button:hover, .register-button:hover, .create-button:hover, .add-button:hover, .control-button:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 24px 0 rgba(48, 103, 72, 0.13);
+}
+button:active, .tab:active, .all-button:active, .register-button:active, .create-button:active, .add-button:active, .control-button:active {
+  transform: scale(0.97);
+}
+
+/* mainWindow.css */
+.filter-dropdown-content.show {
+  animation: fadeInDropdown 0.25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes fadeInDropdown {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+/* mainWindow.css, newgroup.css, groupinfoadmin.css, groupinfomember.css */
+@keyframes fadeInList {
+  from { opacity: 0; transform: translateY(20px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.chat-item, .friend-item, .member {
+  animation: fadeInList 0.4s cubic-bezier(.4,0,.2,1);
+}
+
+.profile-pic, .group-avatar {
+  animation: pulseGlow 2s infinite alternate;
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 #FDD36744; }
+  100% { box-shadow: 0 0 24px 8px #FDD36788; }
 }
 
