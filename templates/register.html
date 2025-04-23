@@ -32,5 +32,89 @@
             </svg>
         </button>
     </div>
+
+    <!-- Модальное окно с гифкой успешной регистрации -->
+    <div id="success-modal" class="success-modal">
+      <div class="success-content">
+        <img src="/static/img/capybara.gif" alt="Успешная регистрация" id="success-gif">
+        <h2>Регистрация успешна!</h2>
+      </div>
+    </div>
+
+    <!-- Скрипт для обработки успешной регистрации -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Обработка формы регистрации
+        const form = document.querySelector('form');
+        
+        form.addEventListener('submit', function(e) {
+          e.preventDefault(); // Предотвращаем обычную отправку формы
+          
+          // Получаем данные формы
+          const formData = new FormData(form);
+          
+          // Отправляем данные на сервер
+          fetch('/register', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Показываем модальное окно с гифкой
+              const modal = document.getElementById('success-modal');
+              modal.style.display = 'flex';
+              
+              // Запускаем конфетти
+              confetti({
+                particleCount: 150,
+                spread: 180,
+                origin: { y: 0.5 },
+                colors: ['#306748', '#FDD367', '#7E453D']
+              });
+              
+              // Длительные конфетти
+              const duration = 3 * 1000;
+              const end = Date.now() + duration;
+              
+              (function frame() {
+                confetti({
+                  particleCount: 2,
+                  angle: 60,
+                  spread: 55,
+                  origin: { x: 0, y: 0.5 },
+                  colors: ['#306748', '#FDD367', '#7E453D']
+                });
+                
+                confetti({
+                  particleCount: 2,
+                  angle: 120,
+                  spread: 55,
+                  origin: { x: 1, y: 0.5 },
+                  colors: ['#306748', '#FDD367', '#7E453D']
+                });
+                
+                if (Date.now() < end) {
+                  requestAnimationFrame(frame);
+                }
+              })();
+              
+              // Скрываем модальное окно и переходим на страницу входа через 3 секунды
+              setTimeout(function() {
+                window.location.href = '/login';
+              }, 3000);
+            } else {
+              // Обработка ошибок регистрации
+              alert(data.message || 'Ошибка при регистрации');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при регистрации');
+          });
+        });
+      });
+    </script>
 </body>
 </html>

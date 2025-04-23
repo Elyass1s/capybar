@@ -23,9 +23,9 @@
     <div class="search-container">
       <input type="text" class="search-bar" placeholder="Search">
       <div class="filter-dropdown">
-        <button type="button" class="all-button" id="filterButton">All</button>
+        <button type="button" class="all-button" id="filterButton">All Chats</button>
         <div class="filter-dropdown-content" id="filterDropdown">
-          <button type="button" class="filter-option" data-filter="all">All(Chats)</button>
+          <button type="button" class="filter-option" data-filter="all">All Chats</button>
           <button type="button" class="filter-option" data-filter="direct">Directs</button>
           <button type="button" class="filter-option" data-filter="group">Groups</button>
         </div>
@@ -2030,7 +2030,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
         const memberStyles = document.getElementById('groupInfoMemberStyles');
         
         if (adminStyles) adminStyles.remove();
-        if (memberStyles) memberStyles.remove();
+        if (memberStyles) adminStyles.remove();
       }
 
     // Add this code to the existing <script> section - replace the existing group info functionality
@@ -2565,6 +2565,75 @@ function markMessageAsRead(messageId) {
     }
   }
 }
+
+// Новая функция поиска - ищет только в существующих чатах пользователя
+function searchChatsAndUsers() {
+  const searchInput = document.querySelector('.search-container input');
+  const searchTerm = searchInput.value.trim().toLowerCase();
+  
+  if (!searchTerm) {
+    // Если поле поиска пустое, показываем все чаты
+    fetchChats('all');
+    return;
+  }
+
+  // Получаем все чаты пользователя, а затем фильтруем их на стороне клиента
+  fetch('/get_chats?filter=all')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Фильтруем чаты по поисковому запросу
+        const filteredChats = data.chats.filter(chat => 
+          chat.name.toLowerCase().includes(searchTerm)
+        );
+        
+        // Обновляем сайдбар отфильтрованными результатами
+        updateChatSidebar(filteredChats);
+        
+        // Если ничего не найдено
+        if (filteredChats.length === 0) {
+          const sidebar = document.querySelector('.sidebar');
+          const noResults = document.createElement('div');
+          noResults.className = 'no-results';
+          noResults.textContent = 'Ничего не найдено';
+          noResults.style.padding = '15px';
+          noResults.style.textAlign = 'center';
+          noResults.style.color = '#666';
+          sidebar.appendChild(noResults);
+        }
+      } else {
+        showNotification('Ошибка поиска', true);
+      }
+    })
+    .catch(error => {
+      console.error('Search error:', error);
+      showNotification('Ошибка поиска. Пожалуйста, попробуйте позже.', true);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.querySelector('.search-container input');
+  
+  // Поиск при вводе текста с небольшой задержкой
+  let searchTimeout;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      if (this.value.trim() === '') {
+        fetchChats('all');
+      } else {
+        searchChatsAndUsers();
+      }
+    }, 300); // Задержка в 300 мс для улучшения производительности
+  });
+
+  // Поиск при нажатии Enter
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      searchChatsAndUsers();
+    }
+  });
+});
   </script>
 </body>
 </html>

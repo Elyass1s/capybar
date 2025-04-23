@@ -168,10 +168,10 @@ def register():
         try:
             db.session.add(user)
             db.session.commit()
-            return redirect(url_for('mainWindow'))
+            return jsonify({"success": True, "message": "Регистрация успешна!"})
         except Exception as e:
             db.session.rollback()
-            return f"При добавлении пользователя произошла ошибка: {str(e)}"
+            return jsonify({"success": False, "message": f"При добавлении пользователя произошла ошибка: {str(e)}"})
     else:   
         return render_template("register.html")
     

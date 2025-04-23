@@ -812,34 +812,7 @@ body {
   border: 2px solid #fdd367;
 }
 
-.filter-option {
-  font-family: 'Konkhmer Sleokchher', cursive;
-  color: #306748;
-  font-size: 22px;
-  padding: 14px 32px;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.18s, color 0.18s, font-weight 0.18s;
-  outline: none;
-  border-radius: 0;
-  letter-spacing: 0.5px;
-}
 
-.filter-option:not(:last-child) {
-  border-bottom: 1px solid #f3e3b7;
-}
-
-.filter-option:hover,
-.filter-option.active {
-  background: linear-gradient(90deg, #fdd367 80%, #ffe9b3 100%);
-  color: #7e453d;
-  font-weight: bold;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px 0 rgba(253, 211, 103, 0.07);
-}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px);}
@@ -1094,14 +1067,16 @@ body {
   background: #FDD367;
   border: none;
   width: 100%;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition: background 0.18s, color 0.18s, font-weight 0.18s, box-shadow 0.18s;
   outline: none;
-  border-radius: 20px;
+  border-radius: 25px;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
   box-shadow: 0 2px 8px 0 rgba(48, 103, 72, 0.10);
+  width: 400;
+  height: 40;
 }
 
 .filter-option:not(:last-child) {
