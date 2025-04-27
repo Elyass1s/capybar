@@ -314,6 +314,15 @@ body {
     border-bottom-right-radius: 5px; /* Эффект пузыря */
   }
 
+  /* Add this new CSS to create space for edit button */
+.message.sent {
+  padding-right: 35px; /* Add right padding for edit button space */
+}
+
+.message.sent .message-content {
+  max-width: calc(100% - 10px); /* Ensure content doesn't overflow */
+}
+
   .received {
     background: #94CCF0;
     color: #76536B;

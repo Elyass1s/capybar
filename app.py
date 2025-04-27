@@ -1166,7 +1166,7 @@ def delete_message():
     message_id = data.get('message_id')
     current_user = get_current_user()
     message = Message.query.get(message_id)
-    if not message or message.sender_id != current_user.id:
+    if not message or message.sender_id  != current_user.id:
         return jsonify({'success': False, 'message': 'No permission'}), 403
     db.session.delete(message)
     db.session.commit()
