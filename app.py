@@ -1,7 +1,7 @@
+import math
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from datetime import datetime, timedelta
 from functools import wraps
 import os
 import time
@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import requests
 from sqlalchemy import text, func, or_, and_  # Добавьте этот импорт в начало файла
 from collections import Counter
+from datetime import datetime, date, timedelta
 
 
 app = Flask(__name__)
@@ -1245,19 +1246,59 @@ def admin_panel():
     registrations = [5, 8, 12, 7, 10]
     peak_hours = [20, 15, 10, 30, 40, 50, 60, 35]
 
+    # Добавляем расчет количества сообщений за сегодня
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    messages_today = db.session.query(func.count(Message.id)).filter(
+        Message.created_at >= today_start
+    ).scalar() or 0
+    
+    # Add calculation for new users registered today
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    new_users_today = db.session.query(func.count(User.id)).filter(
+        User.created_at >= today_start
+    ).scalar() or 0
+    
+    # Calculate storage used
+    uploads_path = os.path.join(app.static_folder, 'uploads')
+    storage_used_bytes = 0
+    
+    # Walk through the uploads directory and sum file sizes
+    for dirpath, dirnames, filenames in os.walk(uploads_path):
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            if os.path.isfile(file_path):
+                storage_used_bytes += os.path.getsize(file_path)
+    
+    # Convert to human-readable format
+    storage_used = convert_size(storage_used_bytes)
+    
     return render_template(
         'adminPanel.html',
         users_count=users_count,
         messages_count=messages_count,
+        messages_today=messages_today,
         avg_messages=avg_messages,
         direct_chats=direct_chats,
         group_chats=group_chats,
         online_users=online_users,
+        new_users_today=new_users_today,  # Add this line
+        storage_used=storage_used,
         user_activity=user_activity,
         message_distribution=message_distribution,
         registrations=registrations,
         peak_hours=peak_hours
     )
+
+# Helper function to convert bytes to human-readable format
+def convert_size(size_bytes):
+    """Convert bytes to human readable format (KB, MB, GB)"""
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB")
+    i = int(math.log(size_bytes, 1024))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return f"{s} {size_name[i]}"
 
 # Создаем таблицы при запуске
 with app.app_context():
