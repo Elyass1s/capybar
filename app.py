@@ -7,7 +7,8 @@ import os
 import time
 from werkzeug.utils import secure_filename
 import requests
-from sqlalchemy import text  # Добавьте этот импорт в начало файла
+from sqlalchemy import text, func, or_, and_  # Добавьте этот импорт в начало файла
+from collections import Counter
 
 
 app = Flask(__name__)
@@ -1202,9 +1203,44 @@ def update_group_avatar(group_id):
 @app.route('/admin_panel')
 @login_required
 def admin_panel():
-    # You might want to add admin checking logic here
-    # For example: if not current_user.is_admin: return redirect(url_for('mainWindow'))
-    return render_template('adminPanel.html')
+    users_count = db.session.query(func.count(User.id)).scalar()
+    messages_count = db.session.query(func.count(Message.id)).scalar()
+    avg_messages = round(messages_count / users_count, 2) if users_count else 0
+
+    # Получаем все личные сообщения (recipient_id не None, group_id == None)
+    direct_msgs = db.session.query(Message.sender_id, Message.recipient_id).filter(
+        Message.recipient_id != None,
+        Message.group_id == None
+    ).all()
+    # Считаем уникальные пары (min, max) чтобы не было дублей
+    direct_pairs = set(tuple(sorted([m[0], m[1]])) for m in direct_msgs if m[0] and m[1])
+    direct_chats = len(direct_pairs)
+
+    # Групповые чаты
+    group_chats = db.session.query(func.count(func.distinct(Message.group_id))).filter(Message.group_id != None).scalar()
+
+    # Онлайн пользователей (пример, если нет last_active)
+    online_users = 0
+
+    # Примерные данные для графиков (замените на реальные)
+    user_activity = [10, 12, 15, 14, 13, 17, 20]
+    message_distribution = [70, 30]
+    registrations = [5, 8, 12, 7, 10]
+    peak_hours = [20, 15, 10, 30, 40, 50, 60, 35]
+
+    return render_template(
+        'adminPanel.html',
+        users_count=users_count,
+        messages_count=messages_count,
+        avg_messages=avg_messages,
+        direct_chats=direct_chats,
+        group_chats=group_chats,
+        online_users=online_users,
+        user_activity=user_activity,
+        message_distribution=message_distribution,
+        registrations=registrations,
+        peak_hours=peak_hours
+    )
 
 # Создаем таблицы при запуске
 with app.app_context():
