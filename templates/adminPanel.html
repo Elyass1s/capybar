@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Capybara Messenger</title>
+  <link href="https://fonts.googleapis.com/css2?family=Konkhmer+Sleokchher&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #306748;
+      overflow: hidden;
+    }
+    
+    .container {
+      width: 1440px;
+      height: 1024px;
+      position: relative;
+      margin: 0 auto;
+      background: #306748;
+      overflow: hidden;
+    }
+    
+    .nav-button {
+      width: 344px;
+      height: 85px;
+      background: #E39451;
+      border-radius: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .nav-button:hover {
+      background: #f0a05a;
+    }
+    
+    .nav-button-text {
+      color: white;
+      font-size: 48px;
+      font-family: 'Konkhmer Sleokchher', cursive;
+      font-weight: 400;
+      text-align: center;
+    }
+    
+    .general-button {
+      left: 38px;
+      top: 127px;
+      position: absolute;
+    }
+    
+    .users-button {
+      left: 38px;
+      top: 234px;
+      position: absolute;
+    }
+    
+    .filter-button {
+      left: 38px;
+      top: 341px;
+      position: absolute;
+    }
+    
+    .exit-button {
+      width: 228px;
+      height: 85px;
+      left: 38px;
+      top: 908px;
+      position: absolute;
+      background: #E39451;
+      border-radius: 35px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+    }
+    
+    .exit-button:hover {
+      background: #f0a05a;
+    }
+    
+    .exit-text {
+      width: 100%;
+      height: 70px;
+      color: white;
+      font-size: 48px;
+      font-family: 'Konkhmer Sleokchher', cursive;
+      font-weight: 400;
+      text-align: center;
+      line-height: 85px;
+    }
+    
+    .content-area {
+      width: 1011px;
+      height: 820px;
+      left: 414px;
+      top: 173px;
+      position: absolute;
+      background: #F0FAEF;
+      border-radius: 70px;
+      overflow: hidden;
+    }
+    
+    .title {
+      width: 455px;
+      height: 112px;
+      left: 28px;
+      top: 12px;
+      position: absolute;
+      text-align: center;
+      color: white;
+      font-size: 48px;
+      font-family: 'Konkhmer Sleokchher', cursive;
+      font-weight: 400;
+    }
+    
+    .profile-pic {
+      width: 80px;
+      height: 80px;
+      left: 10px;
+      top: 12px;
+      position: absolute;
+      border-radius: 172px;
+      object-fit: cover;
+    }
+    
+    .tabs-container {
+      width: 100%;
+      height: 55px;
+      position: absolute;
+      top: 23px;
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    .tab-divider {
+      width: 1011px;
+      height: 1px;
+      left: 0;
+      top: 95px;
+      position: absolute;
+      background: black;
+    }
+    
+    .tab {
+      color: black;
+      font-size: 16px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 400;
+      line-height: 24px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      padding: 4px 12px;
+      transition: all 0.3s;
+    }
+    
+    .tab:hover {
+      background-color: rgba(0,0,0,0.05);
+      border-radius: 4px;
+    }
+    
+    .tab.active {
+      font-weight: 500;
+      color: #306748;
+      border-bottom: 2px solid #306748;
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 20px;
+      margin-top: 100px;
+      height: calc(100% - 140px);
+      overflow-y: auto;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header and profile -->
+    <div class="title">Admin panel</div>
+    <img class="profile-pic" src="/static/img/image 86.png" alt="Profile" />
+    
+    <!-- Navigation buttons -->
+    <div class="nav-button general-button" onclick="switchTab('general')">
+      <div class="nav-button-text">General</div>
+    </div>
+    
+    <div class="nav-button users-button" onclick="switchTab('users')">
+      <div class="nav-button-text">Users</div>
+    </div>
+    
+    <div class="nav-button filter-button" onclick="switchTab('filter')">
+      <div class="nav-button-text">Filter</div>
+    </div>
+    
+    <!-- Exit button -->
+    <div class="exit-button" id="exitButton">
+      <div class="exit-text">Exit</div>
+    </div>
+    
+    <!-- Main content area -->
+    <div class="content-area">
+      <!-- Tabs -->
+      <div class="tabs-container">
+        <div class="tab" data-tab="users" onclick="activateTabContent('users')">USERS</div>
+        <div class="tab" data-tab="online" onclick="activateTabContent('online')">ONLINE</div>
+        <div class="tab" data-tab="friends" onclick="activateTabContent('friends')">FRIENDS</div>
+        <div class="tab" data-tab="groups" onclick="activateTabContent('groups')">GROUPS</div>
+        <div class="tab" data-tab="messages" onclick="activateTabContent('messages')">MESSAGES</div>
+        <div class="tab" data-tab="attachments" onclick="activateTabContent('attachments')">ATTACHMENTS</div>
+        <div class="tab" data-tab="blocked" onclick="activateTabContent('blocked')">BLOCKED USERS</div>
+      </div>
+      
+      <div class="tab-divider"></div>
+      
+      <!-- Tab content areas -->
+      <div id="users-content" class="tab-content">
+        <h2>Users Management</h2>
+        <p>View and manage all registered users.</p>
+        <table style="width:100%; border-collapse: collapse;">
+          <tr style="background-color: #e0e0e0;">
+            <th style="padding: 8px; text-align: left;">User ID</th>
+            <th style="padding: 8px; text-align: left;">Username</th>
+            <th style="padding: 8px; text-align: left;">Email</th>
+            <th style="padding: 8px; text-align: left;">Registered</th>
+            <th style="padding: 8px; text-align: left;">Actions</th>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">1</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">johndoe</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">john@example.com</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">2023-04-15</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+              <button style="background: #306748; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
+              <button style="background: #E39451; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">2</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">janedoe</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">jane@example.com</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">2023-05-22</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+              <button style="background: #306748; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
+              <button style="background: #E39451; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+      
+      <div id="online-content" class="tab-content">
+        <h2>Online Users</h2>
+        <p>Users currently connected to the platform.</p>
+        <ul style="list-style-type: none; padding: 0;">
+          <li style="padding: 8px; border-bottom: 1px solid #ddd; display: flex; align-items: center;">
+            <div style="width: 30px; height: 30px; background: #306748; border-radius: 50%; margin-right: 10px;"></div>
+            johndoe - Last active: Just now
+          </li>
+          <li style="padding: 8px; border-bottom: 1px solid #ddd; display: flex; align-items: center;">
+            <div style="width: 30px; height: 30px; background: #306748; border-radius: 50%; margin-right: 10px;"></div>
+            janedoe - Last active: 5 minutes ago
+          </li>
+        </ul>
+      </div>
+      
+      <div id="friends-content" class="tab-content">
+        <h2>Friend Connections</h2>
+        <p>Monitor friend connections between users.</p>
+      </div>
+      
+      <div id="groups-content" class="tab-content">
+        <h2>Group Management</h2>
+        <p>View and manage all group chats.</p>
+      </div>
+      
+      <div id="messages-content" class="tab-content">
+        <h2>Message Monitoring</h2>
+        <p>View message statistics and flagged content.</p>
+      </div>
+      
+      <div id="attachments-content" class="tab-content">
+        <h2>File Attachments</h2>
+        <p>Monitor and manage uploaded files.</p>
+      </div>
+      
+      <div id="blocked-content" class="tab-content">
+        <h2>Blocked Users</h2>
+        <p>View and manage user blocks.</p>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Set default active tab
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set default active tab to Users
+      activateTabContent('users');
+      
+      // Set General as active sidebar button
+      document.querySelector('.general-button').classList.add('active');
+      
+      // Exit button functionality
+      document.getElementById('exitButton').addEventListener('click', function() {
+        window.location.href = '/mainWindow';
+      });
+    });
+    
+    // Function to switch between main sections (General, Users, Filter)
+    function switchTab(section) {
+      console.log('Switching to section:', section);
+      
+      // Remove active class from all nav buttons
+      const navButtons = document.querySelectorAll('.nav-button');
+      navButtons.forEach(button => button.classList.remove('active'));
+      
+      // Add active class to clicked button
+      document.querySelector('.' + section + '-button').classList.add('active');
+      
+      // You can add additional functionality here to change content based on section
+      if (section === 'general') {
+        activateTabContent('users');
+      } else if (section === 'users') {
+        activateTabContent('online');
+      } else if (section === 'filter') {
+        activateTabContent('blocked');
+      }
+    }
+    
+    // Function to activate tab content
+    function activateTabContent(tabId) {
+      console.log('Activating tab content:', tabId);
+      
+      // Hide all tab content
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+      
+      // Show selected tab content
+      const selectedContent = document.getElementById(tabId + '-content');
+      if (selectedContent) {
+        selectedContent.classList.add('active');
+      }
+      
+      // Update tabs UI
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        if (tab.getAttribute('data-tab') === tabId) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

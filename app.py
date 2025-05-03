@@ -1199,6 +1199,12 @@ def update_group_avatar(group_id):
     db.session.commit()
     return jsonify({'success': True, 'new_avatar_url': f"/static/uploads/{filename}"})
 
+@app.route('/admin_panel')
+@login_required
+def admin_panel():
+    # You might want to add admin checking logic here
+    # For example: if not current_user.is_admin: return redirect(url_for('mainWindow'))
+    return render_template('adminPanel.html')
 
 # Создаем таблицы при запуске
 with app.app_context():
