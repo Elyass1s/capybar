@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 import os
 import time
@@ -41,6 +41,7 @@ class User(db.Model):
     birthdate = db.Column(db.Date)       # добавьте это поле
     status = db.Column(db.String(100))   # добавьте это поле
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_active = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Добавьте метод для установки пароля
     def set_password(self, password):
@@ -143,6 +144,14 @@ def get_current_user():
     if 'user_id' in session:
         return db.session.get(User, session['user_id'])
     return None
+
+@app.before_request
+def update_last_active():
+    if 'user_id' in session:
+        user = db.session.get(User, session['user_id'])
+        if user:
+            user.last_active = datetime.utcnow()
+            db.session.commit()
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -384,12 +393,16 @@ def get_friends():
         
         friends_list = []
         for friend in friends:
+            is_online = False
+            if friend.last_active:
+                is_online = friend.last_active > datetime.utcnow() - timedelta(minutes=5)
             friends_list.append({
                 'id': friend.id,
                 'name': friend.name,
                 'nickname': friend.nickname,
                 'email': friend.email,
-                'avatar': friend.avatar if friend.avatar else None
+                'avatar': friend.avatar if friend.avatar else None,
+                'is_online': is_online
             })
         
         return jsonify({
@@ -921,6 +934,9 @@ def get_chats():
         else:
             last_time = ""
 
+        is_online = False
+        if friend.last_active:
+            is_online = friend.last_active > datetime.utcnow() - timedelta(minutes=5)
         chats.append({
             'type': 'direct',
             'id': friend.id,
@@ -928,7 +944,8 @@ def get_chats():
             'avatar': friend.avatar,
             'last_message': last_msg.content if last_msg else '',
             'last_time': last_time,
-            'unread_count': unread_count
+            'unread_count': unread_count,
+            'is_online': is_online  # <-- добавьте это поле!
         })
 
     # Группы

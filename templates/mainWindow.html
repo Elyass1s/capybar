@@ -1268,10 +1268,14 @@ document.querySelector('.input-box input').addEventListener('keypress', function
         chatItem.setAttribute('data-chat-type', 'direct');
         chatItem.setAttribute('data-user-id', friend.id);
         
+        // Добавляем индикатор статуса к аватару
+        const isOnline = friend.is_online || false; // Должно приходить с сервера
+        
         chatItem.innerHTML = `
           <div class="chat-item-name">
             <img src="${friend.avatar ? '/static/uploads/' + normalizeAvatarPath(friend.avatar) : '/static/img/image 12.png'}" alt="avatar" />
             <div>${friend.nickname || friend.name}</div>
+            <div class="status-indicator ${isOnline ? 'status-online' : 'status-offline'}"></div>
           </div>
           <div class="chat-item-time"></div>
         `;
@@ -1415,10 +1419,13 @@ const timeElement = chatItem.querySelector('.chat-item-time');
                 chatItem.setAttribute('data-chat-type', 'direct');
                 chatItem.setAttribute('data-user-id', user.id);
                 
+                const isOnline = user.is_online || false; // Должно приходить с сервера
+
                 chatItem.innerHTML = `
                   <div class="chat-item-name">
                     <img src="${user.avatar ? '/static/uploads/' + user.avatar : '/static/img/image 12.png'}" alt="avatar" />
                     <div>${user.name}</div>
+                    <div class="status-indicator ${isOnline ? 'status-online' : 'status-offline'}"></div>
                   </div>
                   <div class="chat-item-time"></div>
                 `;
@@ -2034,7 +2041,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
         const memberStyles = document.getElementById('groupInfoMemberStyles');
         
         if (adminStyles) adminStyles.remove();
-        if (memberStyles) adminStyles.remove();
+        if (memberStyles) memberStyles.remove();
       }
 
     // Add this code to the existing <script> section - replace the existing group info functionality
@@ -2205,11 +2212,13 @@ document.addEventListener('DOMContentLoaded', function() {
         chatItem.setAttribute('data-chat-type', chat.type);
         chatItem.setAttribute(chat.type === 'group' ? 'data-group-id' : 'data-user-id', chat.id);
         
-        // Делаем содержимое chat-item видимым и кликабельным!
+        // Изменяем расположение индикатора - теперь он после имени
+        const isOnline = chat.is_online || false;
         chatItem.innerHTML = `
           <div class="chat-item-name">
             <img src="${chat.avatar ? '/static/uploads/' + chat.avatar : '/static/img/image 12.png'}" alt="avatar" />
             <div>${chat.name}</div>
+            ${chat.type === 'direct' ? `<div class="status-indicator ${isOnline ? 'status-online' : 'status-offline'}"></div>` : ''}
           </div>
           <div class="chat-item-right">
             ${chat.unread_count > 0 ? `<div class="unread-count">${chat.unread_count}</div>` : ''}
