@@ -137,13 +137,26 @@ def login_required(f):
         if 'user_id' not in session:
             flash('Пожалуйста, войдите в систему для доступа к этой странице', 'error')
             return redirect(url_for('login'))
+        
+        # Дополнительная проверка существования пользователя
+        user = db.session.get(User, session['user_id'])
+        if not user:
+            # Если пользователя не существует, очищаем сессию
+            session.pop('user_id', None)
+            flash('Сессия истекла. Пожалуйста, войдите заново.', 'error')
+            return redirect(url_for('login'))
+            
         return f(*args, **kwargs)
     return decorated_function
 
 # Функция для получения текущего пользователя из сессии
 def get_current_user():
     if 'user_id' in session:
-        return db.session.get(User, session['user_id'])
+        user = db.session.query(User).get(session['user_id'])
+        if user:
+            return user
+        # Если пользователь не найден, очищаем сессию
+        session.pop('user_id', None)
     return None
 
 @app.before_request
@@ -227,6 +240,11 @@ def logout():
 @login_required
 def mainWindow():
     current_user = get_current_user()
+    
+    # Добавляем проверку на случай, если current_user всё равно None
+    if not current_user:
+        flash('Вы не авторизованы. Пожалуйста, войдите в систему.', 'error')
+        return redirect(url_for('login'))
     
     # Get the friends of the current user
     friends = User.query.join(Friendship, Friendship.friend_id == User.id)\
