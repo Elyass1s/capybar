@@ -2457,14 +2457,84 @@ socket.on('new_message', (data) => {
   // Check if message belongs to currently active chat
   const activeChat = document.querySelector('.chat-item.active');
   if (activeChat) {
-    // ... existing chat message display logic ...
+    const chatType = activeChat.getAttribute('data-chat-type');
+    const activeChatId = chatType === 'group' ? 
+        activeChat.getAttribute('data-group-id') : 
+        activeChat.getAttribute('data-user-id');
     
-    // If this is an active chat, mark the message as read immediately
-    if (messageForActiveChat && !isSentByMe) {
-      markMessageAsRead(data.id);
+    // Получаем текущий ID пользователя
+    const currentUserId = document.body.getAttribute('data-user-id');
+    const isSentByMe = data.sender_id == currentUserId;
+    
+    // ИСПРАВЛЕНИЕ: Улучшенная логика проверки принадлежности сообщения к чату
+    const messageForActiveChat = 
+        (chatType === 'group' && data.group_id == activeChatId) || 
+        (chatType === 'direct' && (
+            // Cообщение принадлежит текущему чату если:
+(data.sender_id == activeChatId) || // Сообщение от собеседника к нам
+(data.recipient_id == activeChatId) || // Сообщение от нас собеседнику
+            (isSentByMe && data.recipient_id === null) // Сообщение от нас с пустым recipient_id (медиа)
+        ));
+    
+    console.log(`[СООБЩЕНИЕ] Проверка принадлежности сообщения: ${messageForActiveChat ? 'принадлежит активному чату' : 'другой чат'}`);
+    console.log(`[СООБЩЕНИЕ] Активный chatType: ${chatType}, activeChatId: ${activeChatId}`);
+    console.log(`[СООБЩЕНИЕ] Данные: group_id: ${data.group_id}, sender_id: ${data.sender_id}, recipient_id: ${data.recipient_id}`);
+console.log(`[СООБЩЕНИЕ] Отправлено текущим пользователем: ${isSentByMe ? 'да' : 'нет'}`);
+    
+    // Если сообщение принадлежит активному чату - отображаем его
+    if (messageForActiveChat) {
+      // Display message in the chat window
+      const messagesContainer = document.querySelector('.chat-messages');
+      
+      // Проверка наличия даты-разделителя
+      const today = new Date().toLocaleDateString();
+      if (!messagesContainer.querySelector(`.date-label[data-date="${today}"]`)) {
+        const dateLabel = document.createElement('div');
+        dateLabel.className = 'date-label';
+        dateLabel.setAttribute('data-date', today);
+        dateLabel.textContent = today;
+        messagesContainer.appendChild(dateLabel);
+      }
+      
+      // Создаем элемент сообщения
+      let messageElement;
+      if (chatType === 'group') {
+        messageElement = createGroupMessage(
+          data.content,
+          isSentByMe,
+          false, // isRead начально false
+          isSentByMe ? '' : data.sender_name,
+          isSentByMe ? '' : (data.sender_avatar ? '/static/uploads/' + data.sender_avatar : '/static/img/image 12.png'),
+          data.id,
+          data.created_at
+        );
+      } else {
+        messageElement = createMessage(
+          data.content,
+          isSentByMe,
+          false, // isRead начально false
+          data.id,
+          true, // isDelivered
+          data.created_at
+        );
+      }
+      
+      messagesContainer.appendChild(messageElement);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // Если сообщение не от текущего пользователя, отмечаем как прочитанное
+      if (!isSentByMe) {
+        markMessageAsRead(data.id);
+      }
+
+      // Вызываем функцию мониторинга медиа-элементов для проверки загрузки
+      setTimeout(monitorMediaElements, 500);
+    } else {
+      // Сообщение для другого чата, обновляем счетчик непрочитанных
+      updateUnreadCount(data);
     }
   } else {
-    // Message is for a non-active chat, update unread count
+    // Нет активного чата, просто обновляем счетчик непрочитанных
     updateUnreadCount(data);
   }
 });
@@ -2754,6 +2824,178 @@ function showAdminLoginModal() {
   modal.style.display = 'flex';
   console.log('[ADMIN] Модальное окно должно быть видно, display:', modal.style.display);
 }
+
+// Функция для подробного логирования медиафайлов
+function logMediaElement(element, type) {
+  console.log(`[МЕДИА_ДЕТАЛИ] Тип: ${type}, Элемент:`, element);
+  console.log(`[МЕДИА_ДЕТАЛИ] src: ${element.src}`);
+  console.log(`[МЕДИА_ДЕТАЛИ] Размеры: ${element.width || 'авто'}x${element.height || 'авто'}`);
+  
+  if (type === 'img') {
+    console.log(`[МЕДИА_ДЕТАЛИ] Изображение загружено: ${element.complete}`);
+    if (element.complete) {
+      console.log(`[МЕДИА_ДЕТАЛИ] Натуральные размеры: ${element.naturalWidth}x${element.naturalHeight}`);
+    }
+  } else if (type === 'video') {
+    console.log(`[МЕДИА_ДЕТАЛИ] Длительность: ${element.duration || 'неизвестно'} сек`);
+    console.log(`[МЕДИА_ДЕТАЛИ] readyState: ${element.readyState}`);
+    console.log(`[МЕДИА_ДЕТАЛИ] networkState: ${element.networkState}`);
+  }
+  
+  // Проверка видимости и стилей
+  const computedStyle = window.getComputedStyle(element);
+  console.log(`[МЕДИА_ДЕТАЛИ] display: ${computedStyle.display}`);
+  console.log(`[МЕДИА_ДЕТАЛИ] visibility: ${computedStyle.visibility}`);
+  console.log(`[МЕДИА_ДЕТАЛИ] opacity: ${computedStyle.opacity}`);
+  console.log(`[МЕДИА_ДЕТАЛИ] z-index: ${computedStyle.zIndex}`);
+  
+  // Проверка положения элемента в DOM
+  const rect = element.getBoundingClientRect();
+  console.log(`[МЕДИА_ДЕТАЛИ] Положение: x=${rect.left}, y=${rect.top}, width=${rect.width}, height=${rect.height}`);
+  
+  // Проверка родительских элементов
+  let parent = element.parentElement;
+  let path = [];
+  while (parent && path.length < 5) {
+    path.push(`${parent.tagName}${parent.id ? '#'+parent.id : ''}${parent.className ? '.'+parent.className.replace(/\s+/g, '.') : ''}`);
+    parent = parent.parentElement;
+  }
+  console.log(`[МЕДИА_ДЕТАЛИ] DOM-путь: ${path.join(' > ')}`);
+}
+
+// Добавьте прослушиватель для проверки всех медиа-элементов
+document.addEventListener('DOMContentLoaded', function() {
+  // Запускаем сканирование медиа-элементов каждые 3 секунды
+  setInterval(() => {
+    const images = document.querySelectorAll('img.chat-image');
+    const videos = document.querySelectorAll('video');
+    
+    console.log(`[МЕДИА_СКАН] Найдено ${images.length} изображений и ${videos.length} видео в чате`);
+    
+    // Проверяем случайный элемент для более подробной информации
+    if (images.length > 0) {
+      const randomImg = images[Math.floor(Math.random() * images.length)];
+      logMediaElement(randomImg, 'img');
+    }
+    
+    if (videos.length > 0) {
+      const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+      logMediaElement(randomVideo, 'video');
+    }
+  }, 3000);
+  
+  // Обработчик для проверки ошибок загрузки
+  document.addEventListener('error', function(e) {
+    const target = e.target;
+    if ((target.tagName === 'IMG' && target.classList.contains('chat-image')) || target.tagName === 'VIDEO') {
+      console.error(`[МЕДИА_ОШИБКА] Ошибка загрузки ${target.tagName === 'IMG' ? 'изображения' : 'видео'}:`, target.src);
+      console.error('[МЕДИА_ОШИБКА] Детали элемента:', target);
+      
+      // Попытка повторной загрузки
+      const currentSrc = target.src;
+      console.log('[МЕДИА_ОШИБКА] Попытка повторной загрузки с параметром cache-buster');
+      setTimeout(() => {
+        target.src = currentSrc.includes('?') ? 
+          `${currentSrc}&reload=${Date.now()}` : 
+          `${currentSrc}?reload=${Date.now()}`;
+      }, 1000);
+    }
+  }, true); // используем capture = true для перехвата перед всплытием
+});
+
+// Улучшенный обработчик изменения файла для подробного логирования
+fileInput.addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  console.log('=== НАЧАЛО ЗАГРУЗКИ ФАЙЛА ===');
+  console.log(`[МЕДИА_ЗАГРУЗКА] Имя файла: ${file.name}`);
+  console.log(`[МЕДИА_ЗАГРУЗКА] Тип файла: ${file.type}`);
+  console.log(`[МЕДИА_ЗАГРУЗКА] Размер: ${(file.size / 1024).toFixed(2)} КБ`);
+  console.log(`[МЕДИА_ЗАГРУЗКА] Последнее изменение: ${new Date(file.lastModified).toLocaleString()}`);
+
+  // Читаем содержимое файла для проверки
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    console.log(`[МЕДИА_ЗАГРУЗКА] Файл успешно прочитан, размер данных: ${e.target.result.length} байт`);
+    
+    // Для изображений проверяем размеры
+    if (file.type.startsWith('image/')) {
+      const img = new Image();
+      img.onload = function() {
+        console.log(`[МЕДИА_ЗАГРУЗКА] Предварительный просмотр изображения: ${img.width}x${img.height} пикселей`);
+      };
+      img.onerror = function() {
+        console.error('[МЕДИА_ЗАГРУЗКА] Ошибка предварительного просмотра изображения');
+      };
+      img.src = e.target.result;
+    }
+  };
+  reader.onerror = function() {
+    console.error('[МЕДИА_ЗАГРУЗКА] Ошибка чтения файла');
+  };
+  reader.readAsDataURL(file);
+
+  // Продолжение стандартного процесса загрузки
+  const chatMessages = document.querySelector('.chat-messages');
+  const spinnerContainer = document.createElement('div');
+  // ...existing upload code...
+});
+
+// Функция для мониторинга всех медиа-элементов сразу после загрузки сообщений
+function monitorMediaElements() {
+  console.log('[МЕДИА_МОНИТОР] Запуск мониторинга медиа-элементов');
+  
+  // Получаем все медиа-элементы
+  const allImages = document.querySelectorAll('img.chat-image');
+  const allVideos = document.querySelectorAll('video');
+  
+  console.log(`[МЕДИА_МОНИТОР] Всего найдено: ${allImages.length} изображений, ${allVideos.length} видео`);
+  
+  // Проверяем каждое изображение
+  allImages.forEach((img, index) => {
+    console.log(`[МЕДИА_МОНИТОР] Изображение #${index+1}: ${img.src}`);
+    console.log(`[МЕДИА_МОНИТОР] - loaded: ${img.complete}, display: ${window.getComputedStyle(img).display}`);
+    
+    // Добавляем обработчики для изображений, если их еще нет
+    if (!img._monitored) {
+      img._monitored = true;
+      img.addEventListener('load', () => console.log(`[МЕДИА_МОНИТОР] Изображение загружено: ${img.src}`));
+      img.addEventListener('error', () => console.error(`[МЕДИА_МОНИТОР] Ошибка загрузки изображения: ${img.src}`));
+    }
+  });
+  
+  // Проверяем каждое видео
+  allVideos.forEach((video, index) => {
+    console.log(`[МЕДИА_МОНИТОР] Видео #${index+1}: ${video.src}`);
+    console.log(`[МЕДИА_МОНИТОР] - readyState: ${video.readyState}, display: ${window.getComputedStyle(video).display}`);
+    
+    // Добавляем обработчики для видео, если их еще нет
+    if (!video._monitored) {
+      video._monitored = true;
+      video.addEventListener('loadeddata', () => console.log(`[МЕДИА_МОНИТОР] Видео загружено: ${video.src}`));
+      video.addEventListener('error', () => console.error(`[МЕДИА_МОНИТОР] Ошибка загрузки видео: ${video.src}`));
+      video.addEventListener('stalled', () => console.warn(`[МЕДИА_МОНИТОР] Загрузка видео приостановлена: ${video.src}`));
+    }
+  });
+}
+
+// Запускаем мониторинг после загрузки сообщений
+const originalLoadDirectChat = loadDirectChat;
+window.loadDirectChat = function(userId, userName) {
+  originalLoadDirectChat(userId, userName);
+  
+  // После загрузки сообщений с небольшой задержкой проверяем медиа-элементы
+  setTimeout(monitorMediaElements, 1000);
+};
+
+const originalLoadGroupChat = loadGroupChat;
+window.loadGroupChat = function(groupId) {
+  originalLoadGroupChat(groupId);
+  
+  // После загрузки сообщений с небольшой задержкой проверяем медиа-элементы
+  setTimeout(monitorMediaElements, 1000);
+};
   </script>
 </body>
 </html>
