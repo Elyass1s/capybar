@@ -1295,6 +1295,53 @@ def admin_panel():
     # Convert to human-readable format
     storage_used = convert_size(storage_used_bytes)
     
+    # Запрос всех пользователей для таблицы
+    users = User.query.all()
+    users_data = []
+    
+    for user in users:
+        # Получаем количество друзей
+        friends_count = db.session.query(func.count(Friendship.id)).filter(
+            or_(Friendship.user_id == user.id, Friendship.friend_id == user.id)
+        ).scalar() or 0
+        
+        # Получаем количество групп
+        groups_count = db.session.query(func.count(GroupMember.id)).filter(
+            GroupMember.user_id == user.id
+        ).scalar() or 0
+        
+        # Получаем количество сообщений
+        messages_count = db.session.query(func.count(Message.id)).filter(
+            Message.sender_id == user.id
+        ).scalar() or 0
+        
+        # Подсчет сообщений с медиафайлами
+        attachments_count = db.session.query(func.count(Message.id)).filter(
+            Message.sender_id == user.id,
+            or_(
+                Message.content.like('%<img%'),   # Поиск тегов изображений
+                Message.content.like('%<video%'),  # Поиск тегов видео
+                Message.content.like('%/static/uploads/%')  # Поиск ссылок на загруженные файлы
+            )
+        ).scalar() or 0
+        
+        # Проверяем статус онлайн (активность за последние 5 минут)
+        five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
+        is_online = user.last_active >= five_minutes_ago if user.last_active else False
+        
+        # Добавляем в массив данных
+        users_data.append({
+            'id': user.id,
+            'name': user.name,
+            'email': user.email,
+            'is_online': is_online,
+            'friends_count': friends_count,
+            'groups_count': groups_count,
+            'messages_count': messages_count,
+            'attachments_count': attachments_count,  # Используем посчитанное значение
+            'blocked_count': 0  # реализуйте в зависимости от вашей модели данных
+        })
+    
     return render_template(
         'adminPanel.html',
         users_count=users_count,
@@ -1310,7 +1357,8 @@ def admin_panel():
         user_activity=user_activity,
         message_distribution=message_distribution,
         registrations=registrations,
-        peak_hours=peak_hours
+        peak_hours=peak_hours,
+        users_data=users_data  # Добавляем данные пользователей в шаблон
     )
 
 # Helper function to convert bytes to human-readable format
@@ -1323,6 +1371,76 @@ def convert_size(size_bytes):
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return f"{s} {size_name[i]}"
+
+@app.route('/get_user_details/<int:user_id>')
+@login_required
+def get_user_details(user_id):
+    try:
+        # Проверяем админские права (в данном примере упрощенно, вы можете добавить доп. проверки)
+        current_user = get_current_user()
+        
+        # Получаем информацию о пользователе
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        # Получаем количество друзей
+        friends_count = db.session.query(func.count(Friendship.id)).filter(
+            or_(Friendship.user_id == user.id, Friendship.friend_id == user.id)
+        ).scalar() or 0
+        
+        # Получаем количество групп
+        groups_count = db.session.query(func.count(GroupMember.id)).filter(
+            GroupMember.user_id == user.id
+        ).scalar() or 0
+        
+        # Получаем количество сообщений
+        messages_count = db.session.query(func.count(Message.id)).filter(
+            Message.sender_id == user.id
+        ).scalar() or 0
+        
+        # Подсчет сообщений с медиафайлами
+        attachments_count = db.session.query(func.count(Message.id)).filter(
+            Message.sender_id == user.id,
+            or_(
+                Message.content.like('%<img%'),
+                Message.content.like('%<video%'),
+                Message.content.like('%/static/uploads/%')
+            )
+        ).scalar() or 0
+        
+        # Проверяем статус онлайн
+        five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
+        is_online = user.last_active >= five_minutes_ago if user.last_active else False
+        
+        # Форматирование даты для JSON
+        birthdate = user.birthdate.isoformat() if user.birthdate else None
+        last_active = user.last_active.isoformat() if user.last_active else None
+        created_at = user.created_at.isoformat() if user.created_at else None
+        
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'name': user.name,
+                'email': user.email,
+                'nickname': user.nickname,
+                'birthdate': birthdate,
+                'status': user.status,
+                'avatar': user.avatar,
+                'last_active': last_active,
+                'created_at': created_at,
+                'is_online': is_online,
+                'friends_count': friends_count,
+                'groups_count': groups_count,
+                'messages_count': messages_count,
+                'attachments_count': attachments_count
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error getting user details: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 # Создаем таблицы при запуске
 with app.app_context():

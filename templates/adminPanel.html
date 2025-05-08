@@ -356,7 +356,7 @@
               <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ user.attachments_count }}</td>
               <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ user.blocked_count }}</td>
               <td style="padding: 8px; border-bottom: 1px solid #ddd;">
-                <button style="background: #306748; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Edit</button>
+                <button data-userid="{{ user.id }}" onclick="showUserDetails(this.getAttribute('data-userid'))" style="background: #306748; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">More</button>
                 <button style="background: #E39451; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
               </td>
             </tr>
@@ -453,6 +453,88 @@
           <div style="flex: 1; min-width: 200px; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             <h3 style="margin-top: 0;">New Users Today</h3>
             <div style="font-size: 32px; color: #306748; font-weight: bold;">{{ new_users_today }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно для детальной информации о пользователе -->
+  <div id="userDetailsModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #1f1f1f; margin: 5% auto; padding: 20px; border-radius: 10px; width: 80%; max-width: 700px; color: #fff; position: relative;">
+      <span class="close-button" onclick="closeUserModal()" style="position: absolute; right: 20px; top: 10px; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+      
+      <h2 id="modal-username" style="color: #E39451; margin-bottom: 20px;"></h2>
+      
+      <div class="user-details-container" style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <!-- Левая колонка - аватар и основная информация -->
+        <div class="left-column" style="flex: 1; min-width: 250px;">
+          <div class="avatar-container" style="text-align: center; margin-bottom: 20px;">
+            <img id="user-avatar" src="" alt="User Avatar" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #306748;">
+          </div>
+          
+          <div class="status-indicator" style="text-align: center; margin-bottom: 20px;">
+            <span id="online-status" style="padding: 5px 10px; border-radius: 20px; font-size: 14px;"></span>
+          </div>
+        </div>
+        
+        <!-- Правая колонка - детальная информация -->
+        <div class="right-column" style="flex: 2; min-width: 300px;">
+          <div class="info-field" style="margin-bottom: 15px;">
+            <div class="field-label" style="color: #999; font-size: 14px;">Email</div>
+            <div id="user-email" class="field-value" style="font-size: 16px;"></div>
+          </div>
+          
+          <div class="info-field" style="margin-bottom: 15px;">
+            <div class="field-label" style="color: #999; font-size: 14px;">Nickname</div>
+            <div id="user-nickname" class="field-value" style="font-size: 16px;"></div>
+          </div>
+          
+          <div class="info-field" style="margin-bottom: 15px;">
+            <div class="field-label" style="color: #999; font-size: 14px;">Date of Birth</div>
+            <div id="user-birthdate" class="field-value" style="font-size: 16px;"></div>
+          </div>
+          
+          <div class="info-field" style="margin-bottom: 15px;">
+            <div class="field-label" style="color: #999; font-size: 14px;">Status</div>
+            <div id="user-status" class="field-value" style="font-size: 16px;"></div>
+          </div>
+          
+          <div class="info-field" style="margin-bottom: 15px;">
+            <div class="field-label" style="color: #999; font-size: 14px;">Last Active</div>
+            <div id="user-last-active" class="field-value" style="font-size: 16px;"></div>
+          </div>
+          
+          <div class="info-field" style="margin-bottom: 15px;">
+            <div class="field-label" style="color: #999; font-size: 14px;">Registered On</div>
+            <div id="user-created" class="field-value" style="font-size: 16px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Статистика пользователя -->
+      <div class="user-stats" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #444;">
+        <h3 style="color: #E39451; margin-bottom: 15px;">User Statistics</h3>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+          <div class="stat-box" style="flex: 1; min-width: 120px; background-color: #306748; padding: 15px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="stat-friends" style="font-size: 24px; font-weight: bold;"></div>
+            <div class="stat-label" style="font-size: 14px;">Friends</div>
+          </div>
+          
+          <div class="stat-box" style="flex: 1; min-width: 120px; background-color: #306748; padding: 15px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="stat-groups" style="font-size: 24px; font-weight: bold;"></div>
+            <div class="stat-label" style="font-size: 14px;">Groups</div>
+          </div>
+          
+          <div class="stat-box" style="flex: 1; min-width: 120px; background-color: #306748; padding: 15px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="stat-messages" style="font-size: 24px; font-weight: bold;"></div>
+            <div class="stat-label" style="font-size: 14px;">Messages</div>
+          </div>
+          
+          <div class="stat-box" style="flex: 1; min-width: 120px; background-color: #306748; padding: 15px; border-radius: 8px; text-align: center;">
+            <div class="stat-value" id="stat-attachments" style="font-size: 24px; font-weight: bold;"></div>
+            <div class="stat-label" style="font-size: 14px;">Attachments</div>
           </div>
         </div>
       </div>
@@ -609,6 +691,83 @@
     }
     // ...остальной ваш код...
   });
+</script>
+<script>
+  // Функция для отображения информации о пользователе
+  function showUserDetails(userId) {
+    fetch(`/get_user_details/${userId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          const user = data.user;
+          
+          // Заполняем данные в модальном окне
+          document.getElementById('modal-username').textContent = user.name;
+          
+          // Аватар пользователя - ИСПРАВЛЕНО
+          const avatarEl = document.getElementById('user-avatar');
+          if (user.avatar) {
+            avatarEl.src = `/static/uploads/${user.avatar}`;
+          } else {
+            avatarEl.src = '/static/img/image 86.png';  // Изменено на нужное изображение по умолчанию
+          }
+          
+          // Статус онлайн
+          const statusEl = document.getElementById('online-status');
+          if (user.is_online) {
+            statusEl.textContent = 'Online';
+            statusEl.style.backgroundColor = '#4CAF50';
+          } else {
+            statusEl.textContent = 'Offline';
+            statusEl.style.backgroundColor = '#F44336';
+          }
+          
+          // Основная информация
+          document.getElementById('user-email').textContent = user.email;
+          document.getElementById('user-nickname').textContent = user.nickname || 'Not set';
+          document.getElementById('user-birthdate').textContent = user.birthdate || 'Not set';
+          document.getElementById('user-status').textContent = user.status || 'No status';
+          
+          // Форматирование дат
+          const formatDate = (dateStr) => {
+            if (!dateStr) return 'Never';
+            const date = new Date(dateStr);
+            return date.toLocaleString();
+          };
+          
+          document.getElementById('user-last-active').textContent = formatDate(user.last_active);
+          document.getElementById('user-created').textContent = formatDate(user.created_at);
+          
+          // Статистика
+          document.getElementById('stat-friends').textContent = user.friends_count;
+          document.getElementById('stat-groups').textContent = user.groups_count;
+          document.getElementById('stat-messages').textContent = user.messages_count;
+          document.getElementById('stat-attachments').textContent = user.attachments_count;
+          
+          // Показываем модальное окно
+          document.getElementById('userDetailsModal').style.display = 'block';
+        } else {
+          alert('Error loading user data: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user details:', error);
+        alert('Error fetching user details. Please try again.');
+      });
+  }
+  
+  // Функция для закрытия модального окна
+  function closeUserModal() {
+    document.getElementById('userDetailsModal').style.display = 'none';
+  }
+  
+  // Закрытие модального окна при клике вне его содержимого
+  window.onclick = function(event) {
+    const modal = document.getElementById('userDetailsModal');
+    if (event.target == modal) {
+      modal.style.display = 'none';
+    }
+  }
 </script>
 </body>
 </html>
