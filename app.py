@@ -1255,10 +1255,16 @@ def admin_panel():
     # Групповые чаты
     group_chats = db.session.query(func.count(func.distinct(Message.group_id))).filter(Message.group_id != None).scalar()
 
-    # Онлайн пользователей (пример, если нет last_active)
-    online_users = 0
+    # Расчет онлайн пользователей (активных в последние 5 минут)
+    five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
+    online_users = db.session.query(func.count(User.id)).filter(
+        User.last_active >= five_minutes_ago
+    ).scalar() or 0
+    
+    # Расчет процента онлайн пользователей
+    online_percentage = round((online_users / users_count) * 100) if users_count > 0 else 0
 
-    # Примерные данные для графиков (замените на реальные)
+    # Примерные данные для графиков
     user_activity = [10, 12, 15, 14, 13, 17, 20]
     message_distribution = [70, 30]
     registrations = [5, 8, 12, 7, 10]
@@ -1271,7 +1277,6 @@ def admin_panel():
     ).scalar() or 0
     
     # Add calculation for new users registered today
-    today_start = datetime.combine(date.today(), datetime.min.time())
     new_users_today = db.session.query(func.count(User.id)).filter(
         User.created_at >= today_start
     ).scalar() or 0
@@ -1299,7 +1304,8 @@ def admin_panel():
         direct_chats=direct_chats,
         group_chats=group_chats,
         online_users=online_users,
-        new_users_today=new_users_today,  # Add this line
+        online_percentage=online_percentage,  # Теперь переменная определена
+        new_users_today=new_users_today,
         storage_used=storage_used,
         user_activity=user_activity,
         message_distribution=message_distribution,
