@@ -474,7 +474,17 @@
       const editWidget = messageElement.querySelector('.edit-widget');
       const editBtn = messageElement.querySelector('.edit-btn');
       const deleteBtn = messageElement.querySelector('.delete-btn');
-  
+      const translateBtn = messageElement.querySelector('.translate-button');
+      
+      // Восстанавливаем обработчик для кнопки перевода
+      if (translateBtn) {
+        // Удаляем старый обработчик, чтобы избежать дублирования
+        translateBtn.removeEventListener('click', handleTranslation);
+        // Добавляем новый обработчик
+        translateBtn.addEventListener('click', handleTranslation);
+      }
+    
+      // Остальные обработчики событий...
       if (editButton && editWidget) {
         editButton.addEventListener('click', function(e) {
           e.stopPropagation();
