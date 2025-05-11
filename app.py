@@ -1202,29 +1202,74 @@ def update_group_avatar(group_id):
 @app.route('/translate_text', methods=['POST'])
 def translate_text():
     try:
+        # Получаем данные из запроса
         data = request.get_json()
         text = data.get('text', '')
         source_lang = data.get('source_lang', 'auto')
         target_lang = data.get('target_lang', 'en')
         
-        # Здесь можно использовать любой сервис перевода, например, Google Translate API
-        # В данном примере используем упрощенный подход
+        # Если текст пустой, возвращаем ошибку
+        if not text:
+            return jsonify({
+                'success': False,
+                'message': 'Текст для перевода отсутствует'
+            })
         
-        # Для демонстрации можно использовать библиотеку translate
-        from translate import Translator
-        translator = Translator(to_lang=target_lang, from_lang=source_lang)
-        translation = translator.translate(text)
+        # Проверка длины текста (лимит MyMemory)
+        if len(text) > 500:
+            return jsonify({
+                'success': False,
+                'message': 'Текст слишком длинный для перевода (максимум 500 символов)'
+            })
         
-        return jsonify({
-            'success': True,
-            'translated_text': translation,
-            'source_lang': source_lang,
-            'target_lang': target_lang
-        })
+        # Если source_lang = 'auto', определяем язык на основе наличия кириллицы
+        if source_lang == 'auto':
+            import re
+            has_cyrillic = bool(re.search('[а-яА-ЯёЁ]', text))
+            source_lang = 'ru' if has_cyrillic else 'en'
+        
+        # Имена языков для отображения пользователю
+        language_names = {
+            'en': 'английского',
+            'ru': 'русского',
+            'fr': 'французского',
+            'de': 'немецкого',
+            'es': 'испанского',
+            'it': 'итальянского',
+        }
+        
+        # Используем MyMemory Translation API (бесплатный)
+        url = f"https://api.mymemory.translated.net/get"
+        params = {
+            'q': text,
+            'langpair': f"{source_lang}|{target_lang}",
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if data['responseStatus'] == 200:
+            translated_text = data['responseData']['translatedText']
+            source_language_name = language_names.get(source_lang, source_lang)
+            
+            return jsonify({
+                'success': True,
+                'translated_text': translated_text,
+                'source_lang': source_lang,
+                'target_lang': target_lang,
+                'source_language_name': source_language_name
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f"Ошибка перевода: {data.get('responseDetails', 'Неизвестная ошибка')}"
+            })
+        
     except Exception as e:
+        print(f"Ошибка перевода: {str(e)}")
         return jsonify({
             'success': False,
-            'message': str(e)
+            'message': f"Не удалось выполнить перевод: {str(e)}"
         })
 
 # Создаем таблицы при запуске
