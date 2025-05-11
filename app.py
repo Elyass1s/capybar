@@ -1199,6 +1199,33 @@ def update_group_avatar(group_id):
     db.session.commit()
     return jsonify({'success': True, 'new_avatar_url': f"/static/uploads/{filename}"})
 
+@app.route('/translate_text', methods=['POST'])
+def translate_text():
+    try:
+        data = request.get_json()
+        text = data.get('text', '')
+        source_lang = data.get('source_lang', 'auto')
+        target_lang = data.get('target_lang', 'en')
+        
+        # Здесь можно использовать любой сервис перевода, например, Google Translate API
+        # В данном примере используем упрощенный подход
+        
+        # Для демонстрации можно использовать библиотеку translate
+        from translate import Translator
+        translator = Translator(to_lang=target_lang, from_lang=source_lang)
+        translation = translator.translate(text)
+        
+        return jsonify({
+            'success': True,
+            'translated_text': translation,
+            'source_lang': source_lang,
+            'target_lang': target_lang
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        })
 
 # Создаем таблицы при запуске
 with app.app_context():

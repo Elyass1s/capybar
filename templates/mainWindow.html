@@ -314,6 +314,10 @@
       let dateObj = createdAt ? new Date(createdAt) : new Date();
       time.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
+      // Добавляем кнопку перевода
+      const translateButton = createTranslateButton();
+      footer.appendChild(translateButton);
+    
       // Статус прочтения (только для своих сообщений)
     if (isSent) {
       const readStatus = document.createElement('span');
@@ -890,6 +894,10 @@
         readStatus.appendChild(svg);
         footer.appendChild(readStatus);
       }
+      
+      // Добавляем кнопку перевода
+      const translateButton = createTranslateButton();
+      footer.appendChild(translateButton);
       
       footer.appendChild(time);
       messageDiv.appendChild(footer);
@@ -2030,7 +2038,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
         const memberStyles = document.getElementById('groupInfoMemberStyles');
         
         if (adminStyles) adminStyles.remove();
-        if (memberStyles) adminStyles.remove();
+        if (memberStyles) memberStyles.remove();
       }
 
     // Add this code to the existing <script> section - replace the existing group info functionality
@@ -2634,6 +2642,135 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// Функция для создания кнопки перевода
+function createTranslateButton() {
+  const translateButton = document.createElement('button');
+  translateButton.className = 'translate-button';
+  translateButton.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+    </svg>
+  `;
+  translateButton.title = "Перевести сообщение";
+  
+  // Добавляем обработчик события
+  translateButton.addEventListener('click', handleTranslation);
+  
+  return translateButton;
+}
+
+// Обработчик клика по кнопке перевода
+function handleTranslation(e) {
+  e.stopPropagation();
+  
+  const messageDiv = e.currentTarget.closest('.message');
+  const translateButton = e.currentTarget;
+  
+  // Получаем текст сообщения (без вложенных элементов)
+  let textNodes = Array.from(messageDiv.childNodes).filter(node => node.nodeType === 3);
+  let messageText = textNodes.map(node => node.textContent).join('').trim();
+  
+  // Если текст отсутствует (например, это изображение или другой контент), выходим
+  if (!messageText) return;
+  
+  // Проверяем, переведено ли уже сообщение
+  if (messageDiv.hasAttribute('data-translated')) {
+    // Если переведено, возвращаем оригинальный текст
+    const originalText = messageDiv.getAttribute('data-original-text');
+    
+    // Заменяем только текстовые узлы, сохраняя дочерние элементы
+    replaceTextContent(messageDiv, originalText);
+    
+    // Удаляем индикатор перевода
+    const translationIndicator = messageDiv.querySelector('.translation-indicator');
+    if (translationIndicator) translationIndicator.remove();
+    
+    // Сбрасываем атрибуты
+    messageDiv.removeAttribute('data-translated');
+    messageDiv.removeAttribute('data-original-text');
+    
+    // Меняем текст кнопки обратно
+    translateButton.title = "Перевести сообщение";
+  } else {
+    // Если не переведено, выполняем перевод
+    
+    // Сохраняем оригинальный текст
+    messageDiv.setAttribute('data-original-text', messageText);
+    
+    // Определяем язык и выполняем перевод
+    detectAndTranslate(messageText).then(result => {
+      // Заменяем текст сообщения на переведенный
+      replaceTextContent(messageDiv, result.translatedText);
+      
+      // Добавляем индикатор перевода
+      const indicator = document.createElement('div');
+      indicator.className = 'translation-indicator';
+      indicator.textContent = `Перевод с ${result.sourceLanguage === 'ru' ? 'русского' : 'английского'}`;
+      messageDiv.insertBefore(indicator, messageDiv.firstChild);
+      
+      // Отмечаем, что сообщение переведено
+      messageDiv.setAttribute('data-translated', 'true');
+      
+      // Меняем текст кнопки
+      translateButton.title = "Показать оригинал";
+    });
+  }
+}
+
+// Функция для замены только текстовых узлов
+function replaceTextContent(element, newText) {
+  // Сохраняем все дочерние элементы
+  const childElements = Array.from(element.childNodes)
+    .filter(node => node.nodeType !== 3);
+  
+  // Очищаем содержимое
+  element.textContent = newText;
+  
+  // Восстанавливаем дочерние элементы
+  childElements.forEach(el => {
+    if (!el.classList || !el.classList.contains('translation-indicator')) {
+      element.appendChild(el);
+    }
+  });
+}
+
+// Функция для определения языка и перевода
+async function detectAndTranslate(text) {
+  try {
+    // Проверяем, содержит ли текст кириллицу
+    const isRussian = /[а-яА-ЯёЁ]/.test(text);
+    const targetLang = isRussian ? 'en' : 'ru';
+    const sourceLang = isRussian ? 'ru' : 'en';
+    
+    // Отправляем запрос к API для перевода
+    const response = await fetch('/translate_text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        text: text, 
+        source_lang: sourceLang,
+        target_lang: targetLang
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return {
+        translatedText: data.translated_text,
+        sourceLanguage: sourceLang
+      };
+    } else {
+      showNotification('Ошибка перевода: ' + (data.message || 'Неизвестная ошибка'), true);
+      return { translatedText: text, sourceLanguage: sourceLang };
+    }
+  } catch (error) {
+    console.error('Translation error:', error);
+    showNotification('Ошибка при переводе', true);
+    return { translatedText: text, sourceLanguage: 'unknown' };
+  }
+}
   </script>
 </body>
 </html>

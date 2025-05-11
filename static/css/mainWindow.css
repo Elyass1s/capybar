@@ -1137,4 +1137,36 @@ button:active, .tab:active, .all-button:active, .register-button:active, .create
   0% { box-shadow: 0 0 0 0 #FDD36744; }
   100% { box-shadow: 0 0 24px 8px #FDD36788; }
 }
+.translate-button {
+  background: none;
+  border: none;
+  padding: 2px;
+  margin-right: 5px;
+  cursor: pointer;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.translate-button:hover {
+  opacity: 1;
+  color: #FDD367;
+}
+
+.translation-indicator {
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 5px;
+  font-style: italic;
+}
+
+.message.sent .translation-indicator {
+  text-align: right;
+}
+
+.message.received .translation-indicator {
+  text-align: left;
+}
 
