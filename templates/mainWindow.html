@@ -318,6 +318,10 @@
       let dateObj = createdAt ? new Date(createdAt) : new Date();
       time.textContent = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
+      // Добавляем кнопку перевода
+      const translateButton = createTranslateButton();
+      footer.appendChild(translateButton);
+    
       // Статус прочтения (только для своих сообщений)
     if (isSent) {
       const readStatus = document.createElement('span');
@@ -897,6 +901,10 @@
         readStatus.appendChild(svg);
         footer.appendChild(readStatus);
       }
+      
+      // Добавляем кнопку перевода
+      const translateButton = createTranslateButton();
+      footer.appendChild(translateButton);
       
       footer.appendChild(time);
       messageDiv.appendChild(footer);
@@ -2046,6 +2054,7 @@ const timeElement = chatItem.querySelector('.chat-item-time');
         const memberStyles = document.getElementById('groupInfoMemberStyles');
         
         if (adminStyles) adminStyles.remove();
+        if (memberStyles) memberStyles.remove();
         if (memberStyles) memberStyles.remove();
       }
 
